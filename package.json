@@ -1,0 +1,37 @@
+{
+  "name": "film-platform",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22.12 <23"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel --filter=@film/api --filter=@film/web --filter=@film/mobile",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:integration": "turbo run test:integration",
+    "test:coverage": "turbo run test:coverage",
+    "test:e2e": "pnpm --filter @film/web test:e2e",
+    "boundaries": "depcruise apps packages --config .dependency-cruiser.cjs && bash scripts/boundaries-selftest.sh",
+    "contract:generate": "pnpm --filter @film/api openapi:generate && pnpm --filter @film/contracts generate",
+    "contract:check": "pnpm contract:generate && prettier --write packages/contracts/openapi.json packages/contracts/src/schema.ts >/dev/null && git diff --exit-code -- packages/contracts",
+    "db:migrate": "pnpm --filter @film/db migrate",
+    "db:generate": "pnpm --filter @film/db generate",
+    "db:check": "bash scripts/check-migrations.sh",
+    "check:todos": "bash scripts/check-todos.sh"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "dependency-cruiser": "^18.7.2",
+    "eslint": "^10.14.0",
+    "globals": "^17.0.0",
+    "prettier": "^3.9.10",
+    "turbo": "^2.11.10",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.1"
+  }
+}
