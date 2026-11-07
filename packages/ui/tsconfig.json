@@ -1,0 +1,4 @@
+{
+  "extends": "@film/config/tsconfig.base.json",
+  "include": ["src"]
+}
