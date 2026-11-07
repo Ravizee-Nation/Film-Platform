@@ -1,0 +1,24 @@
+name: Task
+description: A unit of planned work.
+labels: [task]
+body:
+  - type: input
+    id: phase
+    attributes: { label: Roadmap phase, placeholder: 'Phase 1' }
+    validations: { required: true }
+  - type: textarea
+    id: scope
+    attributes: { label: Scope }
+    validations: { required: true }
+  - type: textarea
+    id: acceptance
+    attributes:
+      {
+        label: Acceptance criteria,
+        description: Measurable and automatically verifiable where possible.,
+      }
+    validations: { required: true }
+  - type: textarea
+    id: dependencies
+    attributes:
+      { label: Dependencies, description: Decisions, external accounts or other tasks this needs. }

@@ -1,0 +1,7 @@
+# Code owners are requested automatically as reviewers on every pull request.
+# ACTION NEEDED (repository admin): replace the placeholder below with your
+# GitHub username or a team (for example @Ravizee-Nation/maintainers), then
+# uncomment it and enable "Require review from Code Owners" on main.
+# See docs/github/branch-protection.md.
+#
+# * @YOUR-GITHUB-USERNAME
