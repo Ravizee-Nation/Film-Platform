@@ -52,6 +52,8 @@ gh api repos/Ravizee-Nation/Film-Platform/rulesets -X POST --input docs/github/r
 
 **Settings** > **Advanced Security** (called **Code security** on some accounts):
 
+- **Dependency graph**: Enable. **Required:** the `dependency-review` CI check fails with
+  "Dependency review is not supported on this repository" until this is on.
 - **Dependabot alerts**: Enable
 - **Dependabot security updates**: Enable
 - **Secret scanning**: Enable, and **Push protection**: Enable
