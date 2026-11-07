@@ -31,6 +31,8 @@ on the Phase 0 branch with CI green; it becomes final when the pull request is m
 | Physical-device verification (criteria 13 and 14)                                                           | **Pending** | Needs a person with an iPhone and an Android phone                    |
 | Repository settings: branch protection, required checks, secret scanning, CODEOWNERS (criterion 15)         | **Pending** | Needs a repository admin; steps in `docs/github/branch-protection.md` |
 
+Criterion-by-criterion acceptance status: [phase-0-acceptance.md](phase-0-acceptance.md).
+
 ## Deviations from the approved Phase 0 specification
 
 | Spec said                                                                   | What was built                                                                                        | Why                                                                                                                                                                                                       |

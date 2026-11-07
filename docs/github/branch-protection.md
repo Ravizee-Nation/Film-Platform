@@ -20,7 +20,7 @@ status checks it has already seen.
    - **Block force pushes**
    - **Require linear history**
    - **Require a pull request before merging**, with:
-     - Required approvals: **1**
+     - Required approvals: **0** while there is one maintainer, **1** once there are two (see section 2)
      - **Dismiss stale pull request approvals when new commits are pushed**
      - **Require conversation resolution before merging**
    - **Require status checks to pass**, with **Require branches to be up to date before merging**,
@@ -37,16 +37,21 @@ From the repository root, as an admin:
 gh api repos/Ravizee-Nation/Film-Platform/rulesets -X POST --input docs/github/ruleset-main.json
 ```
 
-## 2. Code owners (optional but recommended)
+## 2. Code owners and approvals
 
-1. Edit `.github/CODEOWNERS`: replace `@YOUR-GITHUB-USERNAME` with your username or a team, and
-   uncomment the line.
-2. In the ruleset, turn on **Require review from Code Owners**.
+Recommended for the current ownership (one maintainer, `patchworkeducation-lab`, who is also the
+author of pull requests opened from Claude sessions):
 
-> **One-person teams:** GitHub doesn't let you approve your own pull request. If you are the only
-> person with write access, and pull requests are opened from your account, a required approval
-> blocks every merge. In that case either add a second reviewer, or set required approvals to 0
-> and keep all the status checks required. The CI gates still apply either way.
+1. Edit `.github/CODEOWNERS` so the last line reads `* @patchworkeducation-lab` (uncommented).
+2. In the ruleset: **Required approvals: 0**, **Require review from Code Owners: off**, all status
+   checks required, no bypass actors. GitHub doesn't let you approve your own pull request, so a
+   required approval would block every merge, while required checks still enforce every gate.
+3. When a second maintainer joins: point CODEOWNERS at them or a team (for example
+   `@Ravizee-Nation/maintainers`), set **Required approvals: 1**, and turn on **Require review from
+   Code Owners** and **Dismiss stale pull request approvals**.
+
+`docs/github/ruleset-main.json` uses 1 required approval, for the two-maintainer setup. For the
+one-maintainer setup, change `required_approving_review_count` to `0` before running the command.
 
 ## 3. Security settings
 

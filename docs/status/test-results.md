@@ -8,8 +8,12 @@ job summary and keeps coverage and Playwright artifacts for 14 days.
 ### Automated
 
 Recorded from a local run of the full gate before opening the pull request (Node.js 22.22,
-pnpm 10.28, PostgreSQL 16.15). The CI run on the pull request is the authoritative record and is
-linked from the pull request.
+pnpm 10.28, PostgreSQL 16.15), then confirmed in CI on commit `88a049f`:
+[CI run](https://github.com/Ravizee-Nation/Film-Platform/actions/runs/42416361931) (all 9 jobs
+passed, Postgres 17) and
+[Security run](https://github.com/Ravizee-Nation/Film-Platform/actions/runs/42416362109) (CodeQL
+and secrets passed; dependency-review can't run until the dependency graph is enabled).
+Criterion-by-criterion status: [phase-0-acceptance.md](phase-0-acceptance.md).
 
 | Gate                                                            | Result                                                                                     |
 | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
