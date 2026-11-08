@@ -42,7 +42,8 @@ gh api repos/Ravizee-Nation/Film-Platform/rulesets -X POST --input docs/github/r
 Recommended for the current ownership (one maintainer, `patchworkeducation-lab`, who is also the
 author of pull requests opened from Claude sessions):
 
-1. Edit `.github/CODEOWNERS` so the last line reads `* @patchworkeducation-lab` (uncommented).
+1. `.github/CODEOWNERS` reads `* @patchworkeducation-lab` (done on 2026-11-08; the owner confirmed
+   this account is the sole authorized maintainer).
 2. In the ruleset: **Required approvals: 0**, **Require review from Code Owners: off**, all status
    checks required, no bypass actors. GitHub doesn't let you approve your own pull request, so a
    required approval would block every merge, while required checks still enforce every gate.
@@ -50,8 +51,9 @@ author of pull requests opened from Claude sessions):
    `@Ravizee-Nation/maintainers`), set **Required approvals: 1**, and turn on **Require review from
    Code Owners** and **Dismiss stale pull request approvals**.
 
-`docs/github/ruleset-main.json` uses 1 required approval, for the two-maintainer setup. For the
-one-maintainer setup, change `required_approving_review_count` to `0` before running the command.
+`docs/github/ruleset-main.json` matches the one-maintainer setup: 0 required approvals and no
+mandatory code-owner review. When a second maintainer joins, change
+`required_approving_review_count` to `1` and `require_code_owner_review` to `true`.
 
 ## 3. Security settings
 
