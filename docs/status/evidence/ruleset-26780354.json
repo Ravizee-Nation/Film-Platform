@@ -1,0 +1,100 @@
+{
+  "id": 26780354,
+  "name": "Protect main",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "exclude": [],
+      "include": ["~DEFAULT_BRANCH"]
+    }
+  },
+  "bypass_actors": [],
+  "current_user_can_bypass": "never",
+  "rules": [
+    {
+      "type": "deletion"
+    },
+    {
+      "type": "non_fast_forward"
+    },
+    {
+      "type": "required_linear_history"
+    },
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": false,
+        "required_reviewers": [],
+        "require_code_owner_review": false,
+        "dismissal_restriction": {
+          "enabled": false,
+          "allowed_actors": []
+        },
+        "require_last_push_approval": false,
+        "required_review_thread_resolution": true,
+        "require_extra_approval_for_unattributed_changes": true,
+        "allowed_merge_methods": ["merge", "squash", "rebase"]
+      }
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": true,
+        "do_not_enforce_on_create": false,
+        "required_status_checks": [
+          {
+            "context": "lint",
+            "integration_id": 15368
+          },
+          {
+            "context": "boundaries",
+            "integration_id": 15368
+          },
+          {
+            "context": "api-integration",
+            "integration_id": 15368
+          },
+          {
+            "context": "migrations",
+            "integration_id": 15368
+          },
+          {
+            "context": "mobile",
+            "integration_id": 15368
+          },
+          {
+            "context": "secrets",
+            "integration_id": 15368
+          },
+          {
+            "context": "typecheck",
+            "integration_id": 15368
+          },
+          {
+            "context": "unit",
+            "integration_id": 15368
+          },
+          {
+            "context": "contract",
+            "integration_id": 15368
+          },
+          {
+            "context": "web",
+            "integration_id": 15368
+          },
+          {
+            "context": "codeql",
+            "integration_id": 15368
+          },
+          {
+            "context": "dependency-review",
+            "integration_id": 15368
+          }
+        ]
+      }
+    }
+  ],
+  "updated_at": "2026-11-08T01:00:08.036Z"
+}
