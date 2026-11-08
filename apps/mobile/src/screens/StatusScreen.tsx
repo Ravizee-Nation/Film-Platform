@@ -48,7 +48,7 @@ export function StatusScreen({ check = fetchApiStatus }: { check?: () => Promise
       <Link href="/poc/feed" asChild>
         <Pressable
           accessibilityRole="link"
-          style={[styles.button, { borderColor: palette.border }]}
+          style={StyleSheet.flatten([styles.button, { borderColor: palette.border }])}
         >
           <Text style={{ color: palette.accent }}>1,000-item feed scroll test</Text>
         </Pressable>
@@ -56,7 +56,7 @@ export function StatusScreen({ check = fetchApiStatus }: { check?: () => Promise
       <Link href="/poc/form" asChild>
         <Pressable
           accessibilityRole="link"
-          style={[styles.button, { borderColor: palette.border }]}
+          style={StyleSheet.flatten([styles.button, { borderColor: palette.border }])}
         >
           <Text style={{ color: palette.accent }}>Screen reader form test</Text>
         </Pressable>
