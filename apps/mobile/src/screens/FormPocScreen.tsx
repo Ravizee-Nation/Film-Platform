@@ -1,6 +1,6 @@
 import { minTouchTarget, spacing, typography } from '@film/ui';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { usePalette } from '../theme';
 
 // PROTOTYPE: checks that VoiceOver and TalkBack announce every control. It submits nothing.
@@ -14,7 +14,16 @@ export function FormPocScreen() {
   const input = [styles.input, { borderColor: palette.border, color: palette.text }];
 
   return (
-    <View style={[styles.container, { backgroundColor: palette.background }]}>
+    // ScrollView so the form stays reachable when the keyboard is open: iOS insets it
+    // for the keyboard automatically; Android resizes the window (Expo default).
+    <ScrollView
+      testID="form-scroll"
+      style={{ backgroundColor: palette.background }}
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
+      automaticallyAdjustKeyboardInsets
+    >
       <Text nativeID="name-label" style={[typography.body, { color: palette.text }]}>
         Full name
       </Text>
@@ -70,12 +79,12 @@ export function FormPocScreen() {
           Saved locally (prototype, nothing was sent).
         </Text>
       ) : null}
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: spacing.lg, gap: spacing.sm },
+  container: { flexGrow: 1, padding: spacing.lg, gap: spacing.sm },
   input: {
     minHeight: minTouchTarget,
     borderWidth: 1,
