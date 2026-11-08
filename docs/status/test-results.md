@@ -12,7 +12,8 @@ pnpm 10.28, PostgreSQL 16.15), then confirmed in CI on commit `88a049f`:
 [CI run](https://github.com/Ravizee-Nation/Film-Platform/actions/runs/42416361931) (all 9 jobs
 passed, Postgres 17) and
 [Security run](https://github.com/Ravizee-Nation/Film-Platform/actions/runs/42416362109) (CodeQL
-and secrets passed; dependency-review can't run until the dependency graph is enabled).
+and secrets passed). After the owner enabled the dependency graph on 2026-11-08, the Security
+workflow was re-run on `930f430` and dependency-review passed.
 Criterion-by-criterion status: [phase-0-acceptance.md](phase-0-acceptance.md).
 
 | Gate                                                            | Result                                                                                     |
