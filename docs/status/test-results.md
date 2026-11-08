@@ -35,11 +35,11 @@ Criterion-by-criterion status: [phase-0-acceptance.md](phase-0-acceptance.md).
 
 ### Manual and physical-device checks
 
-| Check                                                   | iPhone                         | Android     |
-| ------------------------------------------------------- | ------------------------------ | ----------- |
-| 13: status screen shows "API: ok"                       | **Pending**                    | **Pending** |
-| 14a: 1,000-item feed scroll performance                 | **Pending**                    | **Pending** |
-| 14b: VoiceOver / TalkBack announce every control        | **Pending**                    | **Pending** |
-| 15: branch protection, required checks, secret scanning | **Pending** (repository admin) |             |
+| Check                                                   | iPhone                                           | Android     |
+| ------------------------------------------------------- | ------------------------------------------------ | ----------- |
+| 13: status screen shows "API: ok"                       | **Pending**                                      | **Pending** |
+| 14a: 1,000-item feed scroll performance                 | **Pending**                                      | **Pending** |
+| 14b: VoiceOver / TalkBack announce every control        | **Pending**                                      | **Pending** |
+| 15: branch protection, required checks, secret scanning | **Passed** (API + owner screenshots, 2026-11-08) |             |
 
 Steps: `docs/testing/physical-devices.md` and `docs/github/branch-protection.md`.
