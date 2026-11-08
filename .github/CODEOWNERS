@@ -1,0 +1,6 @@
+# Code owners are requested automatically as reviewers on every pull request.
+# patchworkeducation-lab is the sole authorized maintainer (owner decision, 2026-11-08).
+# Code-owner review is not mandatory while there is one maintainer, to avoid a
+# self-approval deadlock. When a second maintainer joins, see
+# docs/github/branch-protection.md, section 2.
+* @patchworkeducation-lab

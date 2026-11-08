@@ -1,0 +1,79 @@
+# Phase 0 criterion 2 verification
+# Date (UTC): 2026-11-08T01:05:44Z
+# Commit: 437cadecc81d69ceed7c14cf54b8df850079d1ca
+# Host: Linux 6.18.44-fc-v310, Docker 29.8.2, Node v22.22.0, pnpm 10.28.0
+
+$ corepack enable
+[exit 0]
+
+$ pnpm install --frozen-lockfile 2>&1 | tail -3
+Done in 15s using pnpm v10.28.0
+[exit 0]
+
+$ cp .env.example .env
+[exit 0]
+
+$ docker compose -f infra/compose.yml up -d --wait
+ Network film-platform_default Creating 
+ Network film-platform_default Creating 
+ Volume film-platform_postgres-data Creating 
+ Volume film-platform_postgres-data Creating 
+ Volume film-platform_postgres-data Created 
+ Volume film-platform_postgres-data Created 
+ Network film-platform_default Created 
+ Network film-platform_default Created 
+ Container film-platform-postgres-1 Creating 
+ Container film-platform-postgres-1 Created 
+ Container film-platform-postgres-1 Starting 
+ Container film-platform-postgres-1 Started 
+ Container film-platform-postgres-1 Waiting 
+ Container film-platform-postgres-1 Healthy 
+[exit 0]
+
+$ docker compose -f infra/compose.yml ps --format 'table {{.Service}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}'
+SERVICE    IMAGE                STATUS                   PORTS
+postgres   postgres:17-alpine   Up 3 seconds (healthy)   127.0.0.1:5432->5432/tcp
+[exit 0]
+
+$ set -a; source .env; set +a; pnpm db:migrate 2>&1 | tail -2
+
+Migrations applied.
+[exit 0]
+
+$ pnpm dev   (started in the background; checked after 60 s)
+$ curl -s http://localhost:4000/health
+{"status":"ok"}[exit 0]
+
+$ curl -s http://localhost:4000/ready
+{"status":"ok","checks":{"database":"ok"}}[exit 0]
+
+$ curl -s http://localhost:4000/v1/meta
+{"apiVersion":"0.1.0","environment":"local","minimumClientVersion":"0.1.0"}[exit 0]
+
+$ curl -s http://localhost:3000 | grep -o 'API: <!-- -->[a-z]*' | sed 's/<!-- -->//'
+API: ok
+[exit 0]
+
+$ curl -s http://localhost:8081/status
+packager-status:running[exit 0]
+
+$ docker compose -f infra/compose.yml exec -T postgres psql -U film -d film -Atc "select extname from pg_extension order by 1"
+citext
+pgcrypto
+plpgsql
+[exit 0]
+
+$ docker compose -f infra/compose.yml exec -T postgres psql -U film -d film -Atc 'select version()' | cut -c1-40
+PostgreSQL 17.11 on x86_64-pc-linux-musl
+[exit 0]
+
+$ (stop pnpm dev)
+$ docker compose -f infra/compose.yml down
+ Container film-platform-postgres-1 Stopping 
+ Container film-platform-postgres-1 Stopped 
+ Container film-platform-postgres-1 Removing 
+ Container film-platform-postgres-1 Removed 
+ Network film-platform_default Removing 
+ Network film-platform_default Removed 
+[exit 0]
+
