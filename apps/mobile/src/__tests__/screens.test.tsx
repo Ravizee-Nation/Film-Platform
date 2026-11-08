@@ -40,6 +40,15 @@ describe('proof-of-concept screens', () => {
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
   });
 
+  it('keeps the form scrollable and clear of the keyboard', async () => {
+    await render(<FormPocScreen />);
+    const scroll = screen.getByTestId('form-scroll');
+    expect(scroll.props.automaticallyAdjustKeyboardInsets).toBe(true);
+    expect(scroll.props.keyboardShouldPersistTaps).toBe('handled');
+    // No manual top padding: the header inset comes from the navigation stack.
+    expect(scroll.props.contentContainerStyle).not.toHaveProperty('paddingTop');
+  });
+
   it('enables Save once a name is entered', async () => {
     await render(<FormPocScreen />);
     await fireEvent.changeText(screen.getByLabelText('Full name'), 'Ada Lovelace');
