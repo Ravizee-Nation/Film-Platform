@@ -6,7 +6,7 @@ Statuses: **Passed**, **Pending**, **Failed**, **Exception Approved**.
 - Pull request: [#1](https://github.com/Ravizee-Nation/Film-Platform/pull/1), branch `claude/phase-0-foundation`, not merged
 - Evidence run: commit `88a049f`, [CI run](https://github.com/Ravizee-Nation/Film-Platform/actions/runs/42416361931) and [Security run](https://github.com/Ravizee-Nation/Film-Platform/actions/runs/42416362109).
   Later commits on this branch change documentation only. The latest run on the pull request is authoritative.
-- Last updated: 2026-11-08 (criterion 12 passed after the dependency graph was enabled)
+- Last updated: 2026-11-08 (criterion 12 passed; CODEOWNERS set; criterion 15 settings checked, still pending)
 
 ## Summary
 
@@ -39,11 +39,11 @@ unless a test fails.
 
 ## Manual criteria
 
-| #   | Criterion                                                                                            | Status      | Evidence                                                                                                                                                                                                                                                |
-| --- | ---------------------------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 13  | Physical iPhone and Android phone show "API: ok" through Expo Go                                     | **Pending** | Awaiting the [device checklist](../testing/physical-device-checklist.md), section A                                                                                                                                                                     |
-| 14  | 1,000-item list scrolls smoothly; VoiceOver and TalkBack announce every control; recordings attached | **Pending** | Awaiting checklist sections B and C. Behaviour is unit-tested in [`screens.test.tsx`](https://github.com/Ravizee-Nation/Film-Platform/blob/claude/phase-0-foundation/apps/mobile/src/__tests__/screens.test.tsx), which doesn't replace the device test |
-| 15  | Branch protection, required checks and secret scanning on                                            | **Pending** | Owner is applying them; steps and ruleset in [branch-protection.md](../github/branch-protection.md). CODEOWNERS recommendation below                                                                                                                    |
+| #   | Criterion                                                                                            | Status      | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| --- | ---------------------------------------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 13  | Physical iPhone and Android phone show "API: ok" through Expo Go                                     | **Pending** | Awaiting the [device checklist](../testing/physical-device-checklist.md), section A                                                                                                                                                                                                                                                                                                                                                                                                      |
+| 14  | 1,000-item list scrolls smoothly; VoiceOver and TalkBack announce every control; recordings attached | **Pending** | Awaiting checklist sections B and C. Behaviour is unit-tested in [`screens.test.tsx`](https://github.com/Ravizee-Nation/Film-Platform/blob/claude/phase-0-foundation/apps/mobile/src/__tests__/screens.test.tsx), which doesn't replace the device test                                                                                                                                                                                                                                  |
+| 15  | Branch protection, required checks and secret scanning on                                            | **Pending** | Checked on 2026-11-08 through the GitHub API: no ruleset exists and `main` is unprotected; secret scanning, push protection, Dependabot security updates and private vulnerability reporting are off. CODEOWNERS is set (see below). The build session has admin permission, but its proxy refuses writes to repository-administration APIs, so the owner must apply the settings in [branch-protection.md](../github/branch-protection.md). See the settings verification section below |
 
 ## Documentation criteria
 
@@ -66,21 +66,28 @@ for a change.
 
 ## CODEOWNERS and approval settings (criterion 15)
 
-Evidence of the current ownership: PR #1, and every commit pushed from this session, are attributed to
-the GitHub account **`patchworkeducation-lab`**, which belongs to the owner. The repository belongs
-to the `Ravizee-Nation` organization. No second maintainer is visible.
+Owner decision (2026-11-08): `patchworkeducation-lab` is the sole authorized maintainer.
 
-Recommended now, while there is one maintainer:
+| Setting                                                                            | Required                       | Verified state (2026-11-08)                                                      |
+| ---------------------------------------------------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------- |
+| `.github/CODEOWNERS`                                                               | `* @patchworkeducation-lab`    | **Set** on `claude/phase-0-foundation`; takes effect on `main` when PR #1 merges |
+| Ruleset `Protect main` on the default branch, active, no bypass actors             | Yes                            | **Missing**: no rulesets; `main` not protected                                   |
+| Pull request required, 0 approvals, code-owner review off, conversation resolution | Yes                            | Missing (part of the ruleset)                                                    |
+| All 12 checks required, branch up to date                                          | Yes                            | Missing (part of the ruleset)                                                    |
+| Linear history; block force pushes and deletions                                   | Yes                            | Missing (part of the ruleset)                                                    |
+| Dependency graph                                                                   | On                             | **On** (dependency-review passes)                                                |
+| Secret scanning and push protection                                                | On                             | **Off**                                                                          |
+| Dependabot security updates                                                        | On                             | **Off**                                                                          |
+| Dependabot alerts                                                                  | On                             | Not readable through the build session's proxy                                   |
+| Private vulnerability reporting                                                    | On                             | **Off**                                                                          |
+| CodeQL default setup                                                               | Off (the workflow runs CodeQL) | **Off** (correct)                                                                |
+| Actions workflow permissions: read-only; Actions can't approve pull requests       | Yes                            | Not readable through the build session's proxy                                   |
 
-- `.github/CODEOWNERS`: `* @patchworkeducation-lab`, once the owner confirms the handle. This
-  records ownership and auto-requests review.
-- Ruleset on `main`: pull request required; **required approvals: 0**; **Require review from
-  Code Owners: off**; all 12 status checks required, with branches up to date; linear history; no
-  force pushes or deletions; **no bypass actors**.
-- Reason: GitHub doesn't let an author approve their own pull request. Pull requests from this
-  session are authored by the owner's account, so a required approval would block every merge.
-  Required checks still enforce every quality gate, and merging stays a deliberate act by the owner.
+`docs/github/ruleset-main.json` matches these decisions (0 approvals, code-owner review off, 12 checks,
+no bypass actors) and can be applied in one command by an admin; see
+[branch-protection.md](../github/branch-protection.md).
 
-When a second person with write access joins, either a person or a team such as
-`@Ravizee-Nation/maintainers`: change CODEOWNERS to that team, set **required approvals to 1**, turn
-on **Require review from Code Owners** and **Dismiss stale approvals**.
+Criterion 15 is marked Passed only after these settings are confirmed through the API.
+
+When a second maintainer joins: CODEOWNERS points at them or a team, required approvals become 1,
+code-owner review and stale-approval dismissal are turned on.
