@@ -16,21 +16,22 @@ and secrets passed). After the owner enabled the dependency graph on 2026-11-08,
 workflow was re-run on `930f430` and dependency-review passed.
 Criterion-by-criterion status: [phase-0-acceptance.md](phase-0-acceptance.md).
 
-| Gate                                                            | Result                                                                                     |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Lint (ESLint, zero warnings), Prettier, unlinked-TODO check     | Pass                                                                                       |
-| Type-check, all 8 workspaces (TypeScript 6.0 strict)            | Pass                                                                                       |
-| Unit tests                                                      | Pass: domain 15, contracts 1, API (unit project) 19, web 5, mobile 7                       |
-| API integration tests (real Postgres)                           | Pass: 3 (all API tests: 22)                                                                |
-| Migration tests (re-run, concurrent runs, extensions)           | Pass: 3                                                                                    |
-| Coverage gate (80% lines)                                       | Pass: `apps/api` 93.84% lines, 84.37% branches; `packages/domain` 100% lines, 75% branches |
-| Import boundaries + self-test                                   | Pass: 0 violations; planted forbidden import rejected                                      |
-| Contract check (regenerated OpenAPI + client identical)         | Pass                                                                                       |
-| Migration checks (metadata, drift, merged migrations unchanged) | Pass                                                                                       |
-| Build (API bundle, Next.js)                                     | Pass                                                                                       |
-| Playwright end-to-end (web shows "API: ok" from a live API)     | Pass: 1                                                                                    |
-| Mobile bundle export (iOS and Android)                          | Pass: both Hermes bundles produced                                                         |
-| `pnpm dev` starts API (`/ready` ok), web and Expo dev server    | Pass (manual smoke check)                                                                  |
+| Gate                                                                                   | Result                                                                                     |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Lint (ESLint, zero warnings), Prettier, unlinked-TODO check                            | Pass                                                                                       |
+| Type-check, all 8 workspaces (TypeScript 6.0 strict)                                   | Pass                                                                                       |
+| Unit tests                                                                             | Pass: domain 15, contracts 1, API (unit project) 19, web 5, mobile 7                       |
+| API integration tests (real Postgres)                                                  | Pass: 3 (all API tests: 22)                                                                |
+| Migration tests (re-run, concurrent runs, extensions)                                  | Pass: 3                                                                                    |
+| Coverage gate (80% lines)                                                              | Pass: `apps/api` 93.84% lines, 84.37% branches; `packages/domain` 100% lines, 75% branches |
+| Import boundaries + self-test                                                          | Pass: 0 violations; planted forbidden import rejected                                      |
+| Contract check (regenerated OpenAPI + client identical)                                | Pass                                                                                       |
+| Migration checks (metadata, drift, merged migrations unchanged)                        | Pass                                                                                       |
+| Build (API bundle, Next.js)                                                            | Pass                                                                                       |
+| Playwright end-to-end (web shows "API: ok" from a live API)                            | Pass: 1                                                                                    |
+| Mobile bundle export (iOS and Android)                                                 | Pass: both Hermes bundles produced                                                         |
+| `pnpm dev` starts API (`/ready` ok), web and Expo dev server                           | Pass (manual smoke check)                                                                  |
+| Criterion 2: Docker Compose (Postgres 17.11) + `pnpm dev` on a fresh clone, 2026-11-08 | Pass: [transcript](evidence/criterion-2-docker-compose.txt)                                |
 
 ### Manual and physical-device checks
 
