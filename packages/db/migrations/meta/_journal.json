@@ -22,6 +22,13 @@
       "when": 1794818410581,
       "tag": "0002_identity_integrity",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794819671032,
+      "tag": "0003_identity_uuid_v7",
+      "breakpoints": true
     }
   ]
 }

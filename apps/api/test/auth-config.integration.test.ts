@@ -3,7 +3,12 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { BetterAuthOptions } from 'better-auth';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { FRESH_AGE_SECONDS, FRESH_SESSION_PATHS, NATIVE_APP_ORIGIN } from '../src/auth';
+import {
+  FRESH_AGE_SECONDS,
+  FRESH_SESSION_PATHS,
+  NATIVE_APP_ORIGIN,
+  PASSWORD_LINK_EXPIRES_IN_SECONDS,
+} from '../src/auth';
 import { WEB_ORIGIN, createAuthTestContext, type AuthTestContext } from './auth-helpers';
 
 let ctx: AuthTestContext;
@@ -48,6 +53,10 @@ describe('L9 configuration under test', () => {
   it('email and password: verification required, recovery revokes sessions, minimum length 10', () => {
     const { emailAndPassword } = ctx.auth.options;
     expect(emailAndPassword?.requireEmailVerification).toBe(true);
+    // F11: no password at registration; links are single-use and live 30 minutes.
+    expect(emailAndPassword?.disableSignUp).toBe(true);
+    expect(emailAndPassword?.resetPasswordTokenExpiresIn).toBe(PASSWORD_LINK_EXPIRES_IN_SECONDS);
+    expect(PASSWORD_LINK_EXPIRES_IN_SECONDS).toBe(30 * 60);
     expect(emailAndPassword?.revokeSessionsOnPasswordReset).toBe(true);
     expect(emailAndPassword?.minPasswordLength).toBe(10);
   });
@@ -58,9 +67,11 @@ describe('L9 configuration under test', () => {
     expect(ctx.auth.options.telemetry?.enabled).toBe(false);
   });
 
-  it('no plugins: the server expo() plugin and every excluded plugin are absent', () => {
+  it('only the verify-first registration plugin: no server expo() plugin, no excluded plugins', () => {
     const options: BetterAuthOptions = ctx.auth.options;
-    expect(options.plugins ?? []).toEqual([]);
+    expect((options.plugins ?? []).map((plugin) => plugin.id)).toEqual([
+      'verify-first-registration',
+    ]);
   });
 
   it(`better-auth and @better-auth/expo are pinned exactly to ${APPROVED_VERSION}`, () => {

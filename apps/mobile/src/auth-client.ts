@@ -33,3 +33,14 @@ export async function fetchMe(): Promise<{ status: number; email?: string }> {
   if (!response.ok) return { status: response.status };
   return { status: response.status, email: ((await response.json()) as { email: string }).email };
 }
+
+/**
+ * Verify-first registration (F11): email only. The inbox owner sets the password from
+ * the emailed link (Reset code + Set new password on the trial screen).
+ */
+export async function requestRegistration(email: string) {
+  return authClient.$fetch<{ status: boolean; message: string }>('/register/email', {
+    method: 'POST',
+    body: { email: email.trim(), redirectTo: '/complete-registration' },
+  });
+}

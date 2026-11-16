@@ -6,6 +6,8 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { APIError, createAuthMiddleware, getSessionFromCtx } from 'better-auth/api';
 import { schema, type Database } from '@film/db';
+import { v7 as uuidv7 } from 'uuid';
+import { REGISTRATION_PATH, verifyFirstRegistration } from './auth-registration';
 
 /** S4: sessions expire after 30 days without use, refreshed at most daily. */
 export const SESSION_EXPIRES_IN_SECONDS = 60 * 60 * 24 * 30;
@@ -29,9 +31,15 @@ export const FRESH_SESSION_PATHS: readonly string[] = [
  */
 export const NATIVE_APP_ORIGIN = 'filmplatform://';
 export const AUTH_BASE_PATH = '/api/auth';
+/** F11: registration and reset links are single-use and expire after 30 minutes. */
+export const PASSWORD_LINK_EXPIRES_IN_SECONDS = 30 * 60;
 
 export interface OutgoingAuthEmail {
-  kind: 'verify-email' | 'reset-password';
+  /**
+   * complete-registration: the first password link for a pending (unverified) account.
+   * reset-password: the same library flow for an account that is already verified.
+   */
+  kind: 'verify-email' | 'reset-password' | 'complete-registration';
   to: string;
   url: string;
   token: string;
@@ -76,8 +84,10 @@ export interface CreateAuthOptions {
 
 export function createAuth(options: CreateAuthOptions) {
   const credentialLimit = options.credentialRateLimit ?? { window: 60, max: 5 };
+  // Filled in once the instance exists; used by callbacks that run per request.
+  const late: { context?: Promise<AuthCallbackContext> } = {};
 
-  return betterAuth({
+  const auth = betterAuth({
     appName: 'Film Platform',
     secret: options.secret,
     baseURL: options.baseURL,
@@ -98,22 +108,37 @@ export function createAuth(options: CreateAuthOptions) {
       // Finding F1: the library skips origin/CSRF checks whenever NODE_ENV=test unless
       // this is set explicitly. Pin it, so the checks run in every environment.
       disableOriginCheck: false,
-      database: { generateId: 'uuid' },
+      // ADR 0004: every identity row gets a time-ordered UUID v7 made here. The
+      // database has no default, so a row without one is refused (migration 0003).
+      database: { generateId: () => uuidv7() },
       useSecureCookies: options.production,
       defaultCookieAttributes: { httpOnly: true, sameSite: 'lax' },
     },
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: true,
+      // F11: no password can be attached to an address at registration. Accounts are
+      // created by the verify-first registration plugin, and the first password is set
+      // through the single-use link sent to the inbox (see auth-registration.ts).
+      disableSignUp: true,
       minPasswordLength: 10,
+      resetPasswordTokenExpiresIn: PASSWORD_LINK_EXPIRES_IN_SECONDS,
       // S5: account recovery revokes every existing session.
       revokeSessionsOnPasswordReset: true,
       sendResetPassword: async ({ user, url, token }) => {
-        await options.mailer.send({ kind: 'reset-password', to: user.email, url, token });
+        const kind = user.emailVerified ? 'reset-password' : 'complete-registration';
+        await options.mailer.send({ kind, to: user.email, url, token });
+      },
+      // F11/F12: the link was delivered to the inbox, so opening it proves control of
+      // the address. Mark it verified (the first password set completes registration).
+      onPasswordReset: async ({ user }) => {
+        if (user.emailVerified) return;
+        const context = await late.context!;
+        await context.internalAdapter.updateUser(user.id, { emailVerified: true });
       },
     },
     emailVerification: {
-      sendOnSignUp: true,
+      sendOnSignUp: false,
       autoSignInAfterVerification: false,
       sendVerificationEmail: async ({ user, url, token }) => {
         await options.mailer.send({ kind: 'verify-email', to: user.email, url, token });
@@ -145,8 +170,10 @@ export function createAuth(options: CreateAuthOptions) {
         '/sign-in/email': credentialLimit,
         '/sign-up/email': credentialLimit,
         '/request-password-reset': credentialLimit,
+        [REGISTRATION_PATH]: credentialLimit,
       },
     },
+    plugins: [verifyFirstRegistration()],
     hooks: {
       // S11: the fresh-session rule for sensitive library endpoints.
       before: createAuthMiddleware(async (ctx) => {
@@ -165,6 +192,14 @@ export function createAuth(options: CreateAuthOptions) {
       }),
     },
   });
+  late.context = auth.$context;
+  return auth;
+}
+
+interface AuthCallbackContext {
+  internalAdapter: {
+    updateUser(userId: string, data: { emailVerified: boolean }): Promise<unknown>;
+  };
 }
 
 export type Auth = ReturnType<typeof createAuth>;

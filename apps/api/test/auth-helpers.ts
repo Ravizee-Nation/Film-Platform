@@ -79,13 +79,34 @@ export function cookieFrom(setCookie: string | string[] | undefined): string {
     .join('; ');
 }
 
-export async function signUp(ctx: AuthTestContext, email: string, password = PASSWORD) {
+/** Step 1 of verify-first registration: email only. Creates a pending account. */
+export async function register(ctx: AuthTestContext, email: string) {
   return ctx.app.inject({
     method: 'POST',
-    url: '/api/auth/sign-up/email',
+    url: '/api/auth/register/email',
     headers: { origin: WEB_ORIGIN },
-    payload: { email, password, name: 'Test User' },
+    payload: { email, name: 'Test User', redirectTo: '/complete-registration' },
   });
+}
+
+/** Sets a password with a single-use link token (registration or reset). */
+export async function setPassword(ctx: AuthTestContext, token: string, newPassword = PASSWORD) {
+  return ctx.app.inject({
+    method: 'POST',
+    url: '/api/auth/reset-password',
+    headers: { origin: WEB_ORIGIN },
+    payload: { token, newPassword },
+  });
+}
+
+/** Step 2: the inbox owner opens the link and chooses a password. */
+export async function completeRegistration(
+  ctx: AuthTestContext,
+  email: string,
+  password = PASSWORD,
+) {
+  const { token } = lastEmail(ctx, 'complete-registration', email);
+  return setPassword(ctx, token, password);
 }
 
 export function lastEmail(ctx: AuthTestContext, kind: OutgoingAuthEmail['kind'], to: string) {
@@ -120,13 +141,14 @@ export async function signIn(
   return { response, cookie: cookieFrom(response.headers['set-cookie']) };
 }
 
-/** Creates a verified account and returns a signed-in session cookie. */
+/** Registers, completes registration from the emailed link, and signs in. */
 export async function createVerifiedUser(ctx: AuthTestContext, label = 'user') {
   const email = uniqueEmail(label);
-  const signUpResponse = await signUp(ctx, email);
-  if (signUpResponse.statusCode !== 200) throw new Error(`sign-up failed: ${signUpResponse.body}`);
-  const verifyResponse = await verifyEmail(ctx, email);
-  if (verifyResponse.statusCode >= 400) throw new Error(`verify failed: ${verifyResponse.body}`);
+  const registerResponse = await register(ctx, email);
+  if (registerResponse.statusCode !== 200)
+    throw new Error(`register failed: ${registerResponse.body}`);
+  const complete = await completeRegistration(ctx, email);
+  if (complete.statusCode !== 200) throw new Error(`complete failed: ${complete.body}`);
   const { response, cookie } = await signIn(ctx, email);
   if (response.statusCode !== 200) throw new Error(`sign-in failed: ${response.body}`);
   return { email, cookie };

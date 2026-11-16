@@ -9,10 +9,10 @@ import {
   createAuthTestContext,
   createVerifiedUser,
   me,
+  completeRegistration,
+  register,
   signIn,
-  signUp,
   uniqueEmail,
-  verifyEmail,
   type AuthTestContext,
 } from './auth-helpers';
 import { fakeDatabase, testEnv } from './helpers';
@@ -104,8 +104,8 @@ describe('L2 one person, one identity', () => {
   it('email addresses are case-insensitive: one account, sign-in with any casing', async () => {
     const lower = uniqueEmail('casing');
     const mixed = lower.replace(/^c/, 'C').replace('example', 'Example');
-    expect((await signUp(ctx, mixed)).statusCode).toBe(200);
-    expect((await verifyEmail(ctx, lower)).statusCode).toBeLessThan(400);
+    expect((await register(ctx, mixed)).statusCode).toBe(200);
+    expect((await completeRegistration(ctx, lower)).statusCode).toBe(200);
 
     const { response } = await signIn(ctx, lower);
     expect(response.statusCode).toBe(200);
@@ -113,10 +113,10 @@ describe('L2 one person, one identity', () => {
     expect(rows).toEqual([{ email: lower }]);
   });
 
-  it('signing up again with the same email never creates a second user', async () => {
+  it('registering again with the same email never creates a second user', async () => {
     const email = uniqueEmail('duplicate');
-    await signUp(ctx, email);
-    await signUp(ctx, email.toUpperCase());
+    await register(ctx, email);
+    await register(ctx, email.toUpperCase());
     const rows = await ctx.sql`select id from users where lower(email) = ${email}`;
     expect(rows).toHaveLength(1);
   });

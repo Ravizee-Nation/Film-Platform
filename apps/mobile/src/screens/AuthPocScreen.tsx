@@ -1,7 +1,7 @@
 import { minTouchTarget, spacing, typography } from '@film/ui';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
-import { authClient, fetchMe } from '../auth-client';
+import { authClient, fetchMe, requestRegistration } from '../auth-client';
 import { usePalette } from '../theme';
 
 // PROTOTYPE (D7 trial): the email flows of docs/testing/d7-auth-device-checklist.md
@@ -41,11 +41,11 @@ export function AuthPocScreen() {
         accessibilityRole="button"
         style={button}
         onPress={async () => {
-          const { error } = await authClient.signUp.email({ email, password, name: email });
+          const { error } = await requestRegistration(email);
           setStatus(
             error
-              ? `Create account failed: ${error.code ?? error.status}`
-              : 'Account created. Open the verification link from the API log.',
+              ? `Create account failed: ${error.status}`
+              : 'Check the API log for your registration code, then set a password.',
           );
         }}
       >
@@ -116,7 +116,7 @@ export function AuthPocScreen() {
           setStatus(
             error
               ? `Reset failed: ${error.code ?? error.status}`
-              : 'Password changed. Every device is signed out.',
+              : 'Password set. Sign in with it now.',
           );
         }}
       >

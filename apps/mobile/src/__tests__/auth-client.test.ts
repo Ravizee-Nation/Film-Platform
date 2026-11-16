@@ -175,4 +175,23 @@ describe('mobile auth client', () => {
       seen.every((request) => request.headers.get('origin') === client.NATIVE_APP_ORIGIN),
     ).toBe(true);
   });
+
+  it('registration sends the email only (no password) with the native origin', async () => {
+    const seen: { url: string; body: string; origin: string | null }[] = [];
+    fetchImpl = async (input, init) => {
+      seen.push({
+        url: input instanceof Request ? input.url : String(input),
+        body: String(init?.body ?? ''),
+        origin: new Headers(init?.headers).get('origin'),
+      });
+      return json({ status: true, message: 'ok' });
+    };
+    await client.requestRegistration(' new@example.test ');
+    expect(new URL(seen[0]!.url).pathname).toBe('/api/auth/register/email');
+    expect(JSON.parse(seen[0]!.body)).toEqual({
+      email: 'new@example.test',
+      redirectTo: '/complete-registration',
+    });
+    expect(seen[0]!.origin).toBe(client.NATIVE_APP_ORIGIN);
+  });
 });

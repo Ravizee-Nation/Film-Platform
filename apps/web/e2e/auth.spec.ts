@@ -8,14 +8,17 @@ const API = 'http://localhost:4000';
 const WEB_ORIGIN = 'http://localhost:3000';
 const PASSWORD = 'correct-horse-battery-staple';
 
-function verificationToken(email: string): string {
+/** The token from the latest complete-registration link sent to this address. */
+function registrationToken(email: string): string {
   if (!existsSync(AUTH_OUTBOX_FILE)) throw new Error('no auth outbox file');
   const emails = readFileSync(AUTH_OUTBOX_FILE, 'utf8')
     .trim()
     .split('\n')
     .map((line) => JSON.parse(line) as { kind: string; to: string; token: string });
-  const match = emails.reverse().find((item) => item.kind === 'verify-email' && item.to === email);
-  if (!match) throw new Error(`no verification email for ${email}`);
+  const match = emails
+    .reverse()
+    .find((item) => item.kind === 'complete-registration' && item.to === email);
+  if (!match) throw new Error(`no registration email for ${email}`);
   return match.token;
 }
 
@@ -25,24 +28,26 @@ test('web session: HttpOnly cookie, scripts cannot read it, sign-out ends it', a
   context,
 }) => {
   const email = `browser-${randomUUID().slice(0, 8)}@example.test`;
-  const signUp = await request.post(`${API}/api/auth/sign-up/email`, {
+  // Verify-first registration: email only, then the password from the emailed link.
+  const register = await request.post(`${API}/api/auth/register/email`, {
     headers: { origin: WEB_ORIGIN },
-    data: { email, password: PASSWORD, name: 'Browser Test' },
+    data: { email, name: 'Browser Test', redirectTo: '/complete-registration' },
   });
-  expect(signUp.ok()).toBe(true);
+  expect(register.ok()).toBe(true);
   await expect
     .poll(() => {
       try {
-        return verificationToken(email);
+        return registrationToken(email);
       } catch {
         return '';
       }
     })
     .not.toBe('');
-  const verify = await request.get(
-    `${API}/api/auth/verify-email?token=${encodeURIComponent(verificationToken(email))}`,
-  );
-  expect(verify.status()).toBeLessThan(400);
+  const complete = await request.post(`${API}/api/auth/reset-password`, {
+    headers: { origin: WEB_ORIGIN },
+    data: { token: registrationToken(email), newPassword: PASSWORD },
+  });
+  expect(complete.ok()).toBe(true);
 
   await page.goto('/poc/auth');
   await page.getByLabel('Email').fill(email);

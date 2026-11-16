@@ -9,8 +9,10 @@ import {
   createAuthTestContext,
   createVerifiedUser,
   me,
+  completeRegistration,
+  register,
+  setPassword,
   signIn,
-  signUp,
   uniqueEmail,
   type AuthTestContext,
 } from './auth-helpers';
@@ -36,20 +38,13 @@ describe('L5 authentication errors', () => {
     expect(wrong.json().code).toBe('INVALID_EMAIL_OR_PASSWORD');
   });
 
-  it('an unverified account with a wrong password looks like any wrong password', async () => {
-    const email = uniqueEmail('unverified');
-    await signUp(ctx, email);
-    const response = (await signIn(ctx, email, 'not-the-password')).response;
-    expect(response.statusCode).toBe(401);
-    expect(response.json().code).toBe('INVALID_EMAIL_OR_PASSWORD');
-  });
-
-  it('an unverified account with the right password is refused until verified', async () => {
-    const email = uniqueEmail('unverified2');
-    await signUp(ctx, email);
-    const response = (await signIn(ctx, email)).response;
-    expect(response.statusCode).toBe(403);
-    expect(response.json().code).toBe('EMAIL_NOT_VERIFIED');
+  it('a pending registration cannot sign in with any password, and looks like an unknown email', async () => {
+    const email = uniqueEmail('pending');
+    await register(ctx, email);
+    const pending = (await signIn(ctx, email, PASSWORD)).response;
+    const unknown = (await signIn(ctx, uniqueEmail('nobody'), PASSWORD)).response;
+    expect(pending.statusCode).toBe(401);
+    expect(pending.json()).toEqual(unknown.json());
   });
 
   it('password reset requests look identical for known and unknown emails', async () => {
@@ -69,12 +64,29 @@ describe('L5 authentication errors', () => {
     expect(unknown.json()).toEqual(known.json());
   });
 
-  it('sign-up with an existing email looks the same as a new sign-up (no enumeration)', async () => {
-    const { email } = await createVerifiedUser(ctx, 'signupenum');
-    const fresh = await signUp(ctx, uniqueEmail('brandnew'));
-    const existing = await signUp(ctx, email);
-    expect(existing.statusCode).toBe(fresh.statusCode);
-    expect(Object.keys(existing.json()).sort()).toEqual(Object.keys(fresh.json()).sort());
+  it('registration responds identically for new, pending and existing addresses (no enumeration)', async () => {
+    const { email: existing } = await createVerifiedUser(ctx, 'regenum');
+    const pending = uniqueEmail('regpending');
+    await register(ctx, pending);
+    const responses = await Promise.all([
+      register(ctx, uniqueEmail('brandnew')),
+      register(ctx, pending),
+      register(ctx, existing),
+    ]);
+    expect(responses.map((response) => response.statusCode)).toEqual([200, 200, 200]);
+    expect(new Set(responses.map((response) => response.body)).size).toBe(1);
+  });
+
+  it('the old email-and-password sign-up endpoint is closed and creates nothing', async () => {
+    const email = uniqueEmail('closed');
+    const response = await post(
+      '/sign-up/email',
+      { origin: WEB_ORIGIN },
+      { email, password: PASSWORD, name: 'X' },
+    );
+    expect(response.statusCode).toBe(400);
+    expect(response.json().code).toBe('EMAIL_PASSWORD_SIGN_UP_DISABLED');
+    expect(await ctx.sql`select id from users where email = ${email}`).toHaveLength(0);
   });
 
   it('malformed requests are rejected with 400', async () => {
@@ -86,10 +98,13 @@ describe('L5 authentication errors', () => {
     expect(response.statusCode).toBe(400);
   });
 
-  it('short passwords are rejected at sign-up', async () => {
-    const response = await signUp(ctx, uniqueEmail('short'), 'short');
+  it('short passwords are rejected when the password is set', async () => {
+    const email = uniqueEmail('short');
+    await register(ctx, email);
+    const response = await completeRegistration(ctx, email, 'short');
     expect(response.statusCode).toBe(400);
     expect(response.json().code).toBe('PASSWORD_TOO_SHORT');
+    expect((await setPassword(ctx, 'not-a-real-token')).statusCode).toBe(400);
   });
 
   it('error format: library routes use { code, message }; our routes use the standard shape (documented exception)', async () => {
