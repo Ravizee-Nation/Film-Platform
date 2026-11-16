@@ -1,6 +1,7 @@
 # ADR 0001: Technology stack
 
-- Status: Accepted, conditionally (decision D1)
+- Status: Accepted (decision D1 fully approved by the owner on 2026-11-16; conditionally approved
+  from 2026-11-07 until the device proof of concept passed)
 - Date: 2026-11-07
 
 ## Context
@@ -19,7 +20,8 @@ model. The team has no existing codebase.
 ## Consequences
 
 One language across every app and the backend; shared schemas and a generated API client. The
-choice is revisited if the Phase 0 physical-device proof of concept fails its scroll or
-screen-reader targets (Phase 0 completion criterion 14).
+choice was to be revisited if the Phase 0 physical-device proof of concept failed its scroll or
+screen-reader targets (Phase 0 completion criterion 14). It passed on iPhone and Android, so the
+condition is met.
 
 TypeScript is pinned to 6.0 because `typescript-eslint` does not yet support 7.x.

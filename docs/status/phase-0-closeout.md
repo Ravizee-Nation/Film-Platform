@@ -25,7 +25,11 @@ The first Dependabot update check also succeeded.
 
 ## Phase 1 starting baseline
 
-Phase 1 work branches from `main` at or after `23cdac5`.
+**Final Phase 1 baseline: `main` at [`77ce0b7`](https://github.com/Ravizee-Nation/Film-Platform/commit/77ce0b742c31f6da14003d01aeef890b8014fba0)** (the Phase 0 closeout
+merge, 2026-11-16), or any later commit on `main`. Post-merge checks at `77ce0b7`:
+[CI run](https://github.com/Ravizee-Nation/Film-Platform/actions/runs/43818375244) and
+[Security run](https://github.com/Ravizee-Nation/Film-Platform/actions/runs/43818375245); 11 of 12
+required checks passed, with `dependency-review` skipped by design (pull requests only).
 
 | Area                     | Baseline                                                                                                                                                                                                                    |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -62,5 +66,5 @@ Readiness Brief.
 
 - The `claude/phase-0-foundation` branch can be deleted once this closeout is merged; every evidence
   link now points to the merge commit instead.
-- Decision D1 was approved on the condition that the device proof of concept passed. It did (criteria
-  13 and 14); confirming D1 as fully approved is the owner's call.
+- Decision D1 (technology stack) was fully approved by the owner on 2026-11-16, after the device
+  proof of concept passed (criteria 13 and 14).
