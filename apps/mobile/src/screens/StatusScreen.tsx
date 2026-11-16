@@ -61,6 +61,14 @@ export function StatusScreen({ check = fetchApiStatus }: { check?: () => Promise
           <Text style={{ color: palette.accent }}>Screen reader form test</Text>
         </Pressable>
       </Link>
+      <Link href="/poc/auth" asChild>
+        <Pressable
+          accessibilityRole="link"
+          style={StyleSheet.flatten([styles.button, { borderColor: palette.border }])}
+        >
+          <Text style={{ color: palette.accent }}>Authentication trial (email)</Text>
+        </Pressable>
+      </Link>
     </View>
   );
 }

@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { EnvValidationError, parseApiEnv } from './env';
 
-const valid = { APP_ENV: 'test', DATABASE_URL: 'postgres://u:p@localhost:5432/db' };
+const valid = {
+  APP_ENV: 'test',
+  DATABASE_URL: 'postgres://u:p@localhost:5432/db',
+  BETTER_AUTH_SECRET: 'x'.repeat(32),
+};
 
 describe('parseApiEnv', () => {
   it('applies defaults', () => {
@@ -25,6 +29,12 @@ describe('parseApiEnv', () => {
       expect(issues).toContain('DATABASE_URL');
       expect(issues).toContain('PORT');
     }
+  });
+
+  it('requires a long auth secret', () => {
+    expect(() => parseApiEnv({ ...valid, BETTER_AUTH_SECRET: 'short' })).toThrow(
+      EnvValidationError,
+    );
   });
 
   it('rejects a non-Postgres database URL', () => {

@@ -12,6 +12,7 @@ export default function RootLayout() {
         <Stack.Screen name="index" options={{ title: 'Status' }} />
         <Stack.Screen name="poc/feed" options={{ title: 'Feed scroll test' }} />
         <Stack.Screen name="poc/form" options={{ title: 'Form accessibility test' }} />
+        <Stack.Screen name="poc/auth" options={{ title: 'Authentication trial' }} />
       </Stack>
     </>
   );

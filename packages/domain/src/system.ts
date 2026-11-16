@@ -40,3 +40,13 @@ export function isVersionSupported(version: string, minimum: string): boolean {
   }
   return true;
 }
+
+/** D7 proof of concept: the signed-in user, as the API sees them. */
+export const meResponseSchema = z
+  .object({
+    userId: z.uuid(),
+    email: z.email(),
+    emailVerified: z.boolean(),
+  })
+  .meta({ id: 'MeResponse' });
+export type MeResponse = z.infer<typeof meResponseSchema>;

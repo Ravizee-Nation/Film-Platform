@@ -13,6 +13,9 @@ import {
 import type { ApiEnv } from '@film/domain';
 import packageJson from '../package.json' with { type: 'json' };
 import { registerAccessPolicy } from './access';
+import type { Auth } from './auth';
+import { authRoutes } from './routes/auth';
+import { meRoutes } from './routes/me';
 import { registerErrorHandling } from './errors';
 import { systemRoutes } from './routes/system';
 
@@ -24,6 +27,8 @@ export interface DatabaseHandle {
 export interface BuildAppOptions {
   env: Pick<ApiEnv, 'APP_ENV' | 'CORS_ORIGINS' | 'LOG_LEVEL' | 'MIN_CLIENT_VERSION'>;
   database: DatabaseHandle;
+  /** D7 proof of concept: Better Auth. Without it every non-public route is refused (Phase 0 behaviour). */
+  auth?: Auth;
   /** Extra routes, used by tests to exercise the access policy. */
   register?: (app: FastifyInstance) => void | Promise<void>;
 }
@@ -32,7 +37,7 @@ export const API_VERSION = packageJson.version;
 export const BODY_LIMIT_BYTES = 1_048_576;
 const REQUEST_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 
-export async function buildApp({ env, database, register }: BuildAppOptions) {
+export async function buildApp({ env, database, auth, register }: BuildAppOptions) {
   const app = Fastify({
     bodyLimit: BODY_LIMIT_BYTES,
     requestIdHeader: false,
@@ -63,8 +68,12 @@ export async function buildApp({ env, database, register }: BuildAppOptions) {
   await app.register(helmet);
   // @fastify/cors adds an internal `OPTIONS *` preflight route, so it is
   // registered before the access policy starts checking route declarations.
-  await app.register(cors, { origin: env.CORS_ORIGINS.length > 0 ? env.CORS_ORIGINS : false });
-  registerAccessPolicy(app);
+  await app.register(cors, {
+    origin: env.CORS_ORIGINS.length > 0 ? env.CORS_ORIGINS : false,
+    // Browsers send the session cookie cross-origin (web on :3000, API on :4000) only with credentials.
+    credentials: true,
+  });
+  registerAccessPolicy(app, auth);
   await app.register(swagger, {
     openapi: {
       openapi: '3.1.0',
@@ -84,6 +93,8 @@ export async function buildApp({ env, database, register }: BuildAppOptions) {
     minimumClientVersion: env.MIN_CLIENT_VERSION,
     pingDatabase: () => database.ping(),
   });
+  await app.register(meRoutes);
+  if (auth) await app.register(authRoutes, { auth });
 
   if (register) await register(app);
 

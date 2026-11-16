@@ -18,3 +18,4 @@ apps/mobile/android/
 .DS_Store
 *.log
 next-env.d.ts
+auth-outbox.jsonl

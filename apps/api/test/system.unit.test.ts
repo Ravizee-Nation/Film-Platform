@@ -59,7 +59,7 @@ describe('system routes', () => {
       paths: Record<string, unknown>;
       components: { schemas: Record<string, unknown> };
     };
-    expect(Object.keys(spec.paths).sort()).toEqual(['/health', '/ready', '/v1/meta']);
+    expect(Object.keys(spec.paths).sort()).toEqual(['/health', '/ready', '/v1/me', '/v1/meta']);
     expect(spec.components.schemas).toHaveProperty('ErrorResponse');
   });
 
