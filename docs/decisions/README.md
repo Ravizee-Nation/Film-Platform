@@ -7,13 +7,13 @@ same pull request as the code that makes or depends on a decision. Architecture 
 Status values: **Open** (needs a decision), **Approved**, **Conditionally approved**,
 **In progress** (being actioned outside the code), **Done**, **Superseded**.
 
-Last updated: 2026-11-16 (Phase 0 merged and closed).
+Last updated: 2026-11-16 (D1 fully approved after Phase 0 closed).
 
 ## Decisions requiring the owner's approval
 
 | ID     | Decision                                                                          | Status                                               | Needed by                              | Recommendation / notes                                                                                                                                                                                                                                                                  |
 | ------ | --------------------------------------------------------------------------------- | ---------------------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D1     | Stack: React Native/Expo, Next.js, Node.js/TypeScript, PostgreSQL in one monorepo | **Conditionally approved**                           | Phase 0                                | Approved as the initial architecture. Revisit if the Phase 0 device proof of concept fails. [ADR 0001](0001-technology-stack.md) Condition met: the device proof of concept passed on iPhone and Android (2026-11-16); full approval is the owner's call                                |
+| D1     | Stack: React Native/Expo, Next.js, Node.js/TypeScript, PostgreSQL in one monorepo | **Approved**                                         | Phase 0                                | Fully approved by the owner on 2026-11-16, after the agreed iOS and Android proof-of-concept tests passed (criteria 13 and 14). Previously conditionally approved. [ADR 0001](0001-technology-stack.md)                                                                                 |
 | D2     | Cloud provider and hosting model                                                  | Open                                                 | Phase 1 (staging)                      | Proposal in [costs/phase-1-staging.md](../costs/phase-1-staging.md). Nothing provisioned                                                                                                                                                                                                |
 | D3     | App name, brand, bundle and application IDs, launch countries                     | Open (until the final product identity is confirmed) | Before the first store build (Phase 1) | Placeholder `com.filmplatform.app` used in Phase 0. Bundle IDs can't change after release                                                                                                                                                                                               |
 | D4     | Membership tiers, prices and features                                             | Open                                                 | Phase 2                                | Not implemented. No billing code exists                                                                                                                                                                                                                                                 |
@@ -43,10 +43,10 @@ Last updated: 2026-11-16 (Phase 0 merged and closed).
 
 ## Architecture decision records
 
-| ADR                                 | Title                                                | Status                         |
-| ----------------------------------- | ---------------------------------------------------- | ------------------------------ |
-| [0001](0001-technology-stack.md)    | Technology stack                                     | Accepted (conditional, see D1) |
-| [0002](0002-monorepo-boundaries.md) | Monorepo structure and import boundaries             | Accepted                       |
-| [0003](0003-api-contract.md)        | Contract-first REST API generated from route schemas | Accepted                       |
-| [0004](0004-database-migrations.md) | Database and migration rules                         | Accepted                       |
-| [0005](0005-route-access-policy.md) | Deny-by-default route access policy                  | Accepted                       |
+| ADR                                 | Title                                                | Status                            |
+| ----------------------------------- | ---------------------------------------------------- | --------------------------------- |
+| [0001](0001-technology-stack.md)    | Technology stack                                     | Accepted (D1 approved 2026-11-16) |
+| [0002](0002-monorepo-boundaries.md) | Monorepo structure and import boundaries             | Accepted                          |
+| [0003](0003-api-contract.md)        | Contract-first REST API generated from route schemas | Accepted                          |
+| [0004](0004-database-migrations.md) | Database and migration rules                         | Accepted                          |
+| [0005](0005-route-access-policy.md) | Deny-by-default route access policy                  | Accepted                          |
