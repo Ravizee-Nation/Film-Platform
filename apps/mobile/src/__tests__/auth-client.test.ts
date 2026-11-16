@@ -159,4 +159,20 @@ describe('mobile auth client', () => {
     expect(last.headers.get('cookie')).toContain('better-auth.session_token=abc123.sig');
     expect(last.credentials).toBe('omit');
   });
+
+  it('recovery: the reset request and the new password go to the API with the native origin', async () => {
+    const seen = recordRequests(() => json({ status: true }));
+    await client.authClient.requestPasswordReset({ email: 'a@example.test', redirectTo: '/reset' });
+    await client.authClient.resetPassword({
+      token: 'reset-token',
+      newPassword: 'a-new-passphrase',
+    });
+    expect(seen.map((request) => new URL(request.url).pathname)).toEqual([
+      '/api/auth/request-password-reset',
+      '/api/auth/reset-password',
+    ]);
+    expect(
+      seen.every((request) => request.headers.get('origin') === client.NATIVE_APP_ORIGIN),
+    ).toBe(true);
+  });
 });

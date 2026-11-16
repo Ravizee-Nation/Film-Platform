@@ -4,11 +4,14 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput } from 'react-native
 import { authClient, fetchMe } from '../auth-client';
 import { usePalette } from '../theme';
 
-// PROTOTYPE (D7 trial): email sign-in, "who am I" and sign-out against the local API.
+// PROTOTYPE (D7 trial): the email flows of docs/testing/d7-auth-device-checklist.md
+// against the local API: create account, sign in, who am I, sign out, and recovery.
+// Verification and reset links are printed in the API log (no email is sent).
 export function AuthPocScreen() {
   const palette = usePalette();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [resetCode, setResetCode] = useState('');
   const [status, setStatus] = useState('Signed out');
   const input = [styles.input, { borderColor: palette.border, color: palette.text }];
   const button = [styles.button, { borderColor: palette.border }];
@@ -34,6 +37,20 @@ export function AuthPocScreen() {
         onChangeText={setPassword}
         style={input}
       />
+      <Pressable
+        accessibilityRole="button"
+        style={button}
+        onPress={async () => {
+          const { error } = await authClient.signUp.email({ email, password, name: email });
+          setStatus(
+            error
+              ? `Create account failed: ${error.code ?? error.status}`
+              : 'Account created. Open the verification link from the API log.',
+          );
+        }}
+      >
+        <Text style={{ color: palette.text }}>Create account</Text>
+      </Pressable>
       <Pressable
         accessibilityRole="button"
         style={button}
@@ -65,6 +82,45 @@ export function AuthPocScreen() {
         }}
       >
         <Text style={{ color: palette.text }}>Sign out</Text>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        style={button}
+        onPress={async () => {
+          const { error } = await authClient.requestPasswordReset({ email, redirectTo: '/reset' });
+          setStatus(
+            error
+              ? `Reset request failed: ${error.code ?? error.status}`
+              : 'If the account exists, a reset link is in the API log.',
+          );
+        }}
+      >
+        <Text style={{ color: palette.text }}>Send reset link</Text>
+      </Pressable>
+      <TextInput
+        accessibilityLabel="Reset code"
+        autoCapitalize="none"
+        autoCorrect={false}
+        value={resetCode}
+        onChangeText={setResetCode}
+        style={input}
+      />
+      <Pressable
+        accessibilityRole="button"
+        style={button}
+        onPress={async () => {
+          const { error } = await authClient.resetPassword({
+            token: resetCode.trim(),
+            newPassword: password,
+          });
+          setStatus(
+            error
+              ? `Reset failed: ${error.code ?? error.status}`
+              : 'Password changed. Every device is signed out.',
+          );
+        }}
+      >
+        <Text style={{ color: palette.text }}>Set new password</Text>
       </Pressable>
       <Text accessibilityLiveRegion="polite" style={[typography.body, { color: palette.text }]}>
         {status}

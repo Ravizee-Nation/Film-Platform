@@ -8,13 +8,21 @@
 import {
   bigint,
   boolean,
+  customType,
   index,
   integer,
   pgTable,
   text,
   timestamp,
+  unique,
   uuid,
 } from 'drizzle-orm/pg-core';
+
+/**
+ * Case-insensitive text (the citext extension, enabled in migration 0000). Email
+ * uniqueness is enforced by the database, not only by the library lowercasing input.
+ */
+const citext = customType<{ data: string }>({ dataType: () => 'citext' });
 
 // With `generateId: 'uuid'` Better Auth omits ids on insert and the database
 // generates them (gen_random_uuid, UUID v4). ADR 0004 asks for v7; PostgreSQL 17
@@ -28,7 +36,7 @@ const timestamps = {
 export const users = pgTable('users', {
   id: uuid().primaryKey().defaultRandom(),
   name: text().notNull(),
-  email: text().notNull().unique(),
+  email: citext().notNull().unique(),
   emailVerified: boolean().notNull().default(false),
   image: text(),
   ...timestamps,
@@ -70,7 +78,12 @@ export const accounts = pgTable(
     password: text(),
     ...timestamps,
   },
-  (table) => [index('accounts_user_id_idx').on(table.userId)],
+  (table) => [
+    index('accounts_user_id_idx').on(table.userId),
+    // One provider identity (e.g. one Apple subject) can belong to only one user,
+    // even when two link or sign-in requests race.
+    unique('accounts_provider_account_unique').on(table.providerId, table.accountId),
+  ],
 );
 
 /** Single-use tokens: email verification and password reset. */
@@ -86,10 +99,16 @@ export const verifications = pgTable(
   (table) => [index('verifications_identifier_idx').on(table.identifier)],
 );
 
-/** Database-backed rate-limit counters (shared across API instances). */
+/**
+ * Database-backed rate-limit counters (shared across API instances).
+ * `lastRequest` is owned by the library and must stay epoch milliseconds (it does
+ * arithmetic on it); `created_at`/`updated_at` follow ADR 0004, and a trigger in
+ * migration 0002 keeps `updated_at` current because the library never writes it.
+ */
 export const rateLimits = pgTable('rate_limits', {
   id: uuid().primaryKey().defaultRandom(),
   key: text().notNull().unique(),
   count: integer().notNull(),
   lastRequest: bigint({ mode: 'number' }).notNull(),
+  ...timestamps,
 });

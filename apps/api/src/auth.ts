@@ -50,7 +50,9 @@ export function createDevelopmentMailer(outboxFile?: string): AuthMailer {
         appendFileSync(outboxFile, `${JSON.stringify(email)}\n`);
         return;
       }
-      console.warn(`[auth mail, not sent] ${email.kind} for ${email.to}: ${email.url}`);
+      console.warn(
+        `[auth mail, not sent] ${email.kind} for ${email.to}: ${email.url} (code: ${email.token})`,
+      );
     },
   };
 }
