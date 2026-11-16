@@ -6,19 +6,19 @@ Statuses: **Passed**, **Pending**, **Failed**, **Exception Approved**.
 - Pull request: [#1](https://github.com/Ravizee-Nation/Film-Platform/pull/1), branch `claude/phase-0-foundation`, not merged
 - Evidence run: commit `88a049f`, [CI run](https://github.com/Ravizee-Nation/Film-Platform/actions/runs/42416361931) and [Security run](https://github.com/Ravizee-Nation/Film-Platform/actions/runs/42416362109).
   Later commits on this branch change documentation only. The latest run on the pull request is authoritative.
-- Last updated: 2026-11-08 (criterion 15 passed: API verification plus owner screenshots for the three settings the build session cannot read)
+- Last updated: 2026-11-16 (criteria 13 and 14 passed, owner-attested; exceptions X1 to X4 approved by the owner; all 17 criteria passed)
 
 ## Summary
 
 | Status             | Count | Criteria                                           |
 | ------------------ | ----- | -------------------------------------------------- |
-| Passed             | 15    | 1-12, 15, 16, 17                                   |
-| Pending            | 2     | 13, 14                                             |
+| Passed             | 17    | 1-17 (13 and 14 owner-attested)                    |
+| Pending            | 0     |                                                    |
 | Failed             | 0     |                                                    |
-| Exception Approved | 0     | Four exceptions await the owner's decision (below) |
+| Exception Approved | 4     | X1, X2, X3, X4 (approved by the owner, 2026-11-16) |
 
-**Merge readiness: not ready.** Two criteria are pending (13 and 14, the physical-device tests).
-Neither needs a code change unless a device test fails.
+**Merge readiness: all acceptance criteria met.** Merging still requires the owner's explicit
+authorization; see the merge-readiness assessment in PR #1.
 
 ## Automated criteria (CI)
 
@@ -39,11 +39,11 @@ Neither needs a code change unless a device test fails.
 
 ## Manual criteria
 
-| #   | Criterion                                                                                            | Status      | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| --- | ---------------------------------------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 13  | Physical iPhone and Android phone show "API: ok" through Expo Go                                     | **Pending** | Awaiting the [device checklist](../testing/physical-device-checklist.md), section A                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| 14  | 1,000-item list scrolls smoothly; VoiceOver and TalkBack announce every control; recordings attached | **Pending** | Awaiting checklist sections B and C. Behaviour is unit-tested in [`screens.test.tsx`](https://github.com/Ravizee-Nation/Film-Platform/blob/claude/phase-0-foundation/apps/mobile/src/__tests__/screens.test.tsx), which doesn't replace the device test                                                                                                                                                                                                                                                                                                                      |
-| 15  | Branch protection, required checks and secret scanning on                                            | Passed      | Ruleset [Protect main #26780354](https://github.com/Ravizee-Nation/Film-Platform/settings/rules/26780354) verified active through the API ([snapshot](https://github.com/Ravizee-Nation/Film-Platform/blob/claude/phase-0-foundation/docs/status/evidence/ruleset-26780354.json)); secret scanning, push protection, Dependabot security updates, private vulnerability reporting, dependency graph and CodeQL default setup verified through the API; Dependabot alerts and both Actions settings confirmed by owner screenshots (2026-11-07). See the settings table below |
+| #   | Criterion                                                                                            | Status                  | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| --- | ---------------------------------------------------------------------------------------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 13  | Physical iPhone and Android phone show "API: ok" through Expo Go                                     | Passed (owner-attested) | **Android** (2026-11-13, over the phone's hotspot): app opened on Status showing "API: ok" at `http://10.14.127.97:4000` (photos provided in the build session); "API: unavailable" with the API stopped and "API: ok" after restart. **iPhone** (2026-11-16, on `3b023e5`): API ok, unavailable and recovered, and the iOS 26 header fix confirmed. Results reported by the owner; the owner chose owner attestation as the evidence on 2026-11-16 and no screenshot files were posted. Details in [test-results.md](test-results.md)                                       |
+| 14  | 1,000-item list scrolls smoothly; VoiceOver and TalkBack announce every control; recordings attached | Passed (owner-attested) | **Android**: optimized bundle, Profile HWUI rendering bars stayed below the green line (at least 60 fps; target 55), no blank rows, last row "Post 1000"; TalkBack announced every checklist item. **iPhone**: optimized bundle, no blank rows or stutter, last row "Post 1000"; VoiceOver announced every checklist item. Results reported by the owner; recordings not posted (owner attestation chosen on 2026-11-16). The spec asked for attached recordings; the owner's choice of attestation is recorded here as the evidence                                         |
+| 15  | Branch protection, required checks and secret scanning on                                            | Passed                  | Ruleset [Protect main #26780354](https://github.com/Ravizee-Nation/Film-Platform/settings/rules/26780354) verified active through the API ([snapshot](https://github.com/Ravizee-Nation/Film-Platform/blob/claude/phase-0-foundation/docs/status/evidence/ruleset-26780354.json)); secret scanning, push protection, Dependabot security updates, private vulnerability reporting, dependency graph and CodeQL default setup verified through the API; Dependabot alerts and both Actions settings confirmed by owner screenshots (2026-11-07). See the settings table below |
 
 ## Documentation criteria
 
@@ -52,17 +52,16 @@ Neither needs a code change unless a device test fails.
 | 16  | README covers prerequisites, setup, scripts, troubleshooting; four registers and threat model seeded | Passed | [README](https://github.com/Ravizee-Nation/Film-Platform/blob/claude/phase-0-foundation/README.md), [decisions](../decisions/README.md), [risks](../risks.md), [status](implementation.md), [test results](test-results.md), [threat model](../security/threat-model.md) |
 | 17  | Pull request lists each item with a status label and every deviation                                 | Passed | [PR #1 description](https://github.com/Ravizee-Nation/Film-Platform/pull/1)                                                                                                                                                                                              |
 
-## Exceptions awaiting the owner's decision
+## Exceptions
 
-Each deviation from the specification needs the owner to mark it **Exception Approved**, or to ask
-for a change.
+All four deviations from the specification were approved by the owner on 2026-11-16.
 
-| #   | Deviation                                                                            | Effect                                                                    | Recommendation                                                  |
-| --- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| X1  | Android `usesCleartextTraffic` isn't set in app config (not a valid Expo key)        | None in Phase 0: release builds block plain HTTP by default on Android 9+ | Approve; set it explicitly with the first store build (Phase 1) |
-| X2  | `test-results.md` is updated in each pull request, not committed by CI               | CI keeps read-only permissions                                            | Approve                                                         |
-| X3  | Local verification used Postgres 16; CI and Docker use 17                            | None: CI ran every database test on 17                                    | Approve                                                         |
-| X4  | An empty "Initialize repository" commit was pushed to `main` to create a base branch | No files changed on `main`                                                | Approve                                                         |
+| #   | Deviation                                                                            | Effect                                                                    | Recommendation                                                  | Status                                 |
+| --- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- | --------------------------------------------------------------- | -------------------------------------- |
+| X1  | Android `usesCleartextTraffic` isn't set in app config (not a valid Expo key)        | None in Phase 0: release builds block plain HTTP by default on Android 9+ | Approve; set it explicitly with the first store build (Phase 1) | Exception Approved (owner, 2026-11-16) |
+| X2  | `test-results.md` is updated in each pull request, not committed by CI               | CI keeps read-only permissions                                            | Approve                                                         | Exception Approved (owner, 2026-11-16) |
+| X3  | Local verification used Postgres 16; CI and Docker use 17                            | None: CI ran every database test on 17                                    | Approve                                                         | Exception Approved (owner, 2026-11-16) |
+| X4  | An empty "Initialize repository" commit was pushed to `main` to create a base branch | No files changed on `main`                                                | Approve                                                         | Exception Approved (owner, 2026-11-16) |
 
 ## CODEOWNERS, ruleset and security settings (criterion 15)
 
