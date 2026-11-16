@@ -22,7 +22,7 @@ Criterion 2 (Docker Compose and `pnpm dev`) **passed** on 2026-11-08
 ## 1. Start the platform on the computer
 
 ```bash
-cd Film-Platform && git checkout claude/phase-0-foundation && git pull
+cd Film-Platform && git checkout main && git pull
 corepack enable && pnpm install --frozen-lockfile
 cp .env.example .env
 # Edit .env: EXPO_PUBLIC_API_URL=http://<LAN address>:4000

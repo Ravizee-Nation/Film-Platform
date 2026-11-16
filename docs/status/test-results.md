@@ -3,7 +3,7 @@
 One entry per merged pull request, newest first. CI also writes a coverage summary to each run's
 job summary and keeps coverage and Playwright artifacts for 14 days.
 
-## Phase 0 pull request (`claude/phase-0-foundation`), 2026-11-07
+## Phase 0 pull request (`claude/phase-0-foundation`, merged as `23cdac5` on 2026-11-16), 2026-11-07 to 2026-11-16
 
 ### Automated
 

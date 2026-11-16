@@ -8,8 +8,8 @@ Every feature and component carries exactly one label:
 - **Scaffold**: structure only (folder, config, empty shell), no behaviour yet.
 - **Planned**: designed in the docs, no code yet.
 
-Last updated: 2026-11-07 (Phase 0 pull request, not yet merged). "Complete" below means complete
-on the Phase 0 branch with CI green; it becomes final when the pull request is merged.
+Last updated: 2026-11-16. Phase 0 is complete: PR #1 was merged into `main` as `23cdac5`, so
+"Complete" below is final. See [phase-0-closeout.md](phase-0-closeout.md).
 
 ## Phase 0
 

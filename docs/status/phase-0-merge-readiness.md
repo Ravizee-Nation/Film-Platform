@@ -5,7 +5,7 @@ acceptance criterion is recorded as passed, all required checks pass, and nothin
 approved Phase 0 scope or budget is included.
 
 - Pull request: [#1](https://github.com/Ravizee-Nation/Film-Platform/pull/1), branch
-  `claude/phase-0-foundation`, open and not merged
+  `claude/phase-0-foundation`, **merged into `main` on 2026-11-16** as `23cdac5` (rebase and merge) with the owner's authorization
 - Evidence commit: `bf51ec5` (2026-11-16). Later commits on the branch change documentation only;
   the latest CI run on the pull request is authoritative.
 - Prepared: 2026-11-16

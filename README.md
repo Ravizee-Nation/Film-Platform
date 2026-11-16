@@ -3,9 +3,11 @@
 One platform for iOS, Android and web: a single API, a single PostgreSQL database, and one
 identity, permissions and entitlement model shared by every client.
 
-> **Status: Phase 0 (foundations).** This repository contains the monorepo, an API skeleton,
-> web and mobile shells, the database migration pipeline, CI and the living registers. No
-> user-facing features exist yet. See [docs/status/implementation.md](docs/status/implementation.md).
+> **Status: Phase 0 complete (2026-11-16); Phase 1 not started.** This repository contains the
+> monorepo, an API skeleton, web and mobile shells, the database migration pipeline, CI and the
+> living registers. No user-facing features exist yet. See
+> [docs/status/phase-0-closeout.md](docs/status/phase-0-closeout.md) and
+> [docs/status/implementation.md](docs/status/implementation.md).
 
 ## Repository layout
 
