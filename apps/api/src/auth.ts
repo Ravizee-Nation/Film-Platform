@@ -7,6 +7,11 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { APIError, createAuthMiddleware, getSessionFromCtx } from 'better-auth/api';
 import { schema, type Database } from '@film/db';
 import { v7 as uuidv7 } from 'uuid';
+import {
+  PASSWORD_LINKS_PER_ADDRESS_PER_HOUR,
+  authEmailContent,
+  type AuthEmailKind,
+} from './auth-email';
 import { REGISTRATION_PATH, verifyFirstRegistration } from './auth-registration';
 
 /** S4: sessions expire after 30 days without use, refreshed at most daily. */
@@ -39,10 +44,13 @@ export interface OutgoingAuthEmail {
    * complete-registration: the first password link for a pending (unverified) account.
    * reset-password: the same library flow for an account that is already verified.
    */
-  kind: 'verify-email' | 'reset-password' | 'complete-registration';
+  kind: AuthEmailKind;
   to: string;
   url: string;
   token: string;
+  /** Wording from auth-email.ts; every message says what to do if it was not requested. */
+  subject: string;
+  text: string;
 }
 
 /** Where auth emails go. The trial never sends real email. */
@@ -127,21 +135,55 @@ export function createAuth(options: CreateAuthOptions) {
       revokeSessionsOnPasswordReset: true,
       sendResetPassword: async ({ user, url, token }) => {
         const kind = user.emailVerified ? 'reset-password' : 'complete-registration';
-        await options.mailer.send({ kind, to: user.email, url, token });
+        // Abuse limit: at most N password links per address per hour, counting this
+        // one. Over the limit the link is created but not sent (it expires unused), and
+        // the HTTP response is unchanged, so the limit reveals nothing about the account.
+        const context = await late.context!;
+        const recent = await context.adapter.count({
+          model: 'verification',
+          where: [
+            { field: 'value', value: user.id },
+            { field: 'identifier', value: 'reset-password:', operator: 'starts_with' },
+            { field: 'createdAt', value: new Date(Date.now() - 60 * 60 * 1000), operator: 'gt' },
+          ],
+        });
+        if (recent > PASSWORD_LINKS_PER_ADDRESS_PER_HOUR) {
+          console.warn(`[auth mail, suppressed] ${kind}: per-address hourly limit reached`);
+          return;
+        }
+        await options.mailer.send(email(kind, user.email, url, token));
       },
       // F11/F12: the link was delivered to the inbox, so opening it proves control of
       // the address. Mark it verified (the first password set completes registration).
+      //
+      // Partial failure: the password is saved (and every session revoked) in the
+      // library's transaction before this runs. If marking the email verified fails,
+      // the account stays unverified, so sign-in is refused (fail closed). The client
+      // gets a distinct REGISTRATION_INCOMPLETE error, and any new link (registration
+      // or recovery) finishes the job. One retry covers a momentary database error.
       onPasswordReset: async ({ user }) => {
         if (user.emailVerified) return;
         const context = await late.context!;
-        await context.internalAdapter.updateUser(user.id, { emailVerified: true });
+        try {
+          await markVerified(context, user.id);
+        } catch {
+          try {
+            await markVerified(context, user.id);
+          } catch {
+            throw new APIError('INTERNAL_SERVER_ERROR', {
+              code: 'REGISTRATION_INCOMPLETE',
+              message:
+                'Your password was saved, but we could not finish setting up your account. Request a new link to finish.',
+            });
+          }
+        }
       },
     },
     emailVerification: {
       sendOnSignUp: false,
       autoSignInAfterVerification: false,
       sendVerificationEmail: async ({ user, url, token }) => {
-        await options.mailer.send({ kind: 'verify-email', to: user.email, url, token });
+        await options.mailer.send(email('verify-email', user.email, url, token));
       },
     },
     session: {
@@ -171,6 +213,7 @@ export function createAuth(options: CreateAuthOptions) {
         '/sign-up/email': credentialLimit,
         '/request-password-reset': credentialLimit,
         [REGISTRATION_PATH]: credentialLimit,
+        '/send-verification-email': credentialLimit,
       },
     },
     plugins: [verifyFirstRegistration()],
@@ -196,9 +239,29 @@ export function createAuth(options: CreateAuthOptions) {
   return auth;
 }
 
+function email(kind: AuthEmailKind, to: string, url: string, token: string): OutgoingAuthEmail {
+  return {
+    kind,
+    to,
+    url,
+    token,
+    ...authEmailContent(kind, url, PASSWORD_LINK_EXPIRES_IN_SECONDS / 60),
+  };
+}
+
+async function markVerified(context: AuthCallbackContext, userId: string) {
+  await context.internalAdapter.updateUser(userId, { emailVerified: true });
+}
+
 interface AuthCallbackContext {
   internalAdapter: {
     updateUser(userId: string, data: { emailVerified: boolean }): Promise<unknown>;
+  };
+  adapter: {
+    count(query: {
+      model: string;
+      where: { field: string; value: string | Date; operator?: 'starts_with' | 'gt' }[];
+    }): Promise<number>;
   };
 }
 

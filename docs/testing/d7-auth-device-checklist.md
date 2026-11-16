@@ -19,21 +19,34 @@ once.
    [physical-device-checklist.md](physical-device-checklist.md) section 0).
 2. Find the computer's LAN address (Mac: `ipconfig getifaddr en0`).
 
-## 1. Start the trial stack
+## 1. Start the trial stack (macOS Terminal)
+
+These commands were run end to end before release (Linux, with `sed -i` instead of `sed -i ''`).
+Run them one at a time from the folder where you cloned the repository.
 
 ```bash
-cd Film-Platform && git fetch origin && git checkout poc/d7-better-auth && git pull
+cd Film-Platform
+git fetch origin && git checkout poc/d7-better-auth && git pull
 corepack enable && pnpm install --frozen-lockfile
+
+# Keep any existing settings, then start from the example file.
+[ -f .env ] && cp .env .env.backup
 cp .env.example .env
-# Edit .env:
-#   BETTER_AUTH_SECRET=<output of: openssl rand -base64 32>   (local only, never shared)
-#   AUTH_BASE_URL=http://<LAN address>:4000
-#   EXPO_PUBLIC_API_URL=http://<LAN address>:4000
+
+# Fill in your LAN address and a fresh local-only secret (never share or commit it).
+LAN=$(ipconfig getifaddr en0); echo "LAN address: $LAN"
+SECRET=$(openssl rand -base64 32)
+sed -i '' "s|^BETTER_AUTH_SECRET=.*|BETTER_AUTH_SECRET=$SECRET|; s|^AUTH_BASE_URL=.*|AUTH_BASE_URL=http://$LAN:4000|; s|^EXPO_PUBLIC_API_URL=.*|EXPO_PUBLIC_API_URL=http://$LAN:4000|" .env
+grep -E '^(AUTH_BASE_URL|EXPO_PUBLIC_API_URL)=' .env    # both show your LAN address
+
 docker compose -f infra/compose.yml up -d --wait
 set -a; source .env; set +a
-pnpm db:migrate
-pnpm dev
+pnpm db:migrate     # expect: "Migrations applied."
+pnpm dev            # API :4000, web :3000, Expo QR code; leave this window open
 ```
+
+If `echo` prints an empty LAN address, your Wi-Fi is not `en0`: use `ipconfig getifaddr en1`.
+Open a second Terminal window for the control command below and for reading codes.
 
 - [ ] On each phone's browser, `http://<LAN address>:4000/health` shows `{"status":"ok"}`.
 - [ ] **Control (on the computer):** the server refuses a cookie-bearing request without an Origin:
@@ -65,6 +78,9 @@ iPhone and `d7-android@example.test` on Android, with a password of at least 10 
 | A12 | Put the **old** password back in **Password**, tap **Sign in**                                                                                                                                             | "Sign-in failed: INVALID_EMAIL_OR_PASSWORD"                                                                                  | ☐      | ☐       |
 | A13 | Put the **new** password in, tap **Sign in**, then **Who am I**                                                                                                                                            | "Signed in", then "Signed in as …"                                                                                           | ☐      | ☐       |
 | A14 | Tap **Set new password** again with the same code                                                                                                                                                          | "Reset failed: …" (a code works once)                                                                                        | ☐      | ☐       |
+
+Each address gets at most 3 unused codes per hour (abuse limit). If a code stops appearing in the
+API log after repeated attempts, the limit is working: note it and use a new `@example.test` address.
 
 Evidence: a screenshot of the result of A2, A3, A5, A6, A8, A11 and A13 on each phone, named
 `d7-<step>-ios.png` / `d7-<step>-android.png`, plus the curl control output. Crop the API log so it
