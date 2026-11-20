@@ -194,4 +194,26 @@ describe('mobile auth client', () => {
     });
     expect(seen[0]!.origin).toBe(client.NATIVE_APP_ORIGIN);
   });
+
+  it('reset codes: spaces from the grouped display are removed; letter case is kept', async () => {
+    expect(client.normalizeResetCode(' AbCd eF12 \n3456 ')).toBe('AbCdeF123456');
+    const seen = recordRequests(() => json({ status: true }));
+    await client.submitResetCode('AbCd EfGh 1234 5678 IjKl 90Mn', 'a-new-passphrase');
+    expect(new URL(seen[0]!.url).pathname).toBe('/api/auth/reset-password');
+    expect(seen[0]!.headers.get('origin')).toBe(client.NATIVE_APP_ORIGIN);
+  });
+
+  it('reset codes: the submitted body carries exactly the normalized code', async () => {
+    const bodies: string[] = [];
+    fetchImpl = async (_input, init) => {
+      bodies.push(String(init?.body ?? ''));
+      return json({ status: true });
+    };
+    await client.submitResetCode('AbCd EfGh 1234 5678 IjKl 90Mn', 'a-new-passphrase');
+    expect(JSON.parse(bodies[0]!)).toEqual({
+      token: 'AbCdEfGh12345678IjKl90Mn',
+      newPassword: 'a-new-passphrase',
+    });
+    expect(client.RESET_CODE_LENGTH).toBe(24);
+  });
 });

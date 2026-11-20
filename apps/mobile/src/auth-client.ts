@@ -44,3 +44,14 @@ export async function requestRegistration(email: string) {
     body: { email: email.trim(), redirectTo: '/complete-registration' },
   });
 }
+
+/** Registration and reset codes are 24 letters and digits. Letter case matters. */
+export const RESET_CODE_LENGTH = 24;
+
+/** The API log shows codes in groups of four; spaces are not part of the code. */
+export const normalizeResetCode = (code: string) => code.replace(/\s+/g, '');
+
+/** Sets a password with a registration or reset code. */
+export async function submitResetCode(code: string, newPassword: string) {
+  return authClient.resetPassword({ token: normalizeResetCode(code), newPassword });
+}

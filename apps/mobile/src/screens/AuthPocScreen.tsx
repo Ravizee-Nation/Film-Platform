@@ -1,7 +1,14 @@
 import { minTouchTarget, spacing, typography } from '@film/ui';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
-import { authClient, fetchMe, requestRegistration } from '../auth-client';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
+import {
+  RESET_CODE_LENGTH,
+  authClient,
+  fetchMe,
+  normalizeResetCode,
+  requestRegistration,
+  submitResetCode,
+} from '../auth-client';
 import { usePalette } from '../theme';
 
 // PROTOTYPE (D7 trial): the email flows of docs/testing/d7-auth-device-checklist.md
@@ -101,21 +108,29 @@ export function AuthPocScreen() {
         accessibilityLabel="Reset code"
         autoCapitalize="none"
         autoCorrect={false}
+        autoComplete="off"
+        spellCheck={false}
+        importantForAutofill="no"
+        // Android keyboards may still suggest or capitalise in a plain field; this
+        // keyboard type turns both off. Codes are case-sensitive.
+        keyboardType={Platform.OS === 'android' ? 'visible-password' : 'default'}
         value={resetCode}
         onChangeText={setResetCode}
         style={input}
       />
+      <Text style={[typography.small, { color: palette.textMuted }]}>
+        {`${normalizeResetCode(resetCode).length}/${RESET_CODE_LENGTH} characters (spaces ignored, capitals matter)`}
+      </Text>
       <Pressable
         accessibilityRole="button"
         style={button}
         onPress={async () => {
-          const { error } = await authClient.resetPassword({
-            token: resetCode.trim(),
-            newPassword: password,
-          });
+          const { error } = await submitResetCode(resetCode, password);
           setStatus(
             error
-              ? `Reset failed: ${error.code ?? error.status}`
+              ? error.code === 'INVALID_TOKEN'
+                ? 'Reset failed: INVALID_TOKEN. The code is wrong, used or expired. Check all 24 characters and capitals, or request a new code.'
+                : `Reset failed: ${error.code ?? error.status}`
               : 'Password set. Sign in with it now.',
           );
         }}

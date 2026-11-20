@@ -12,6 +12,12 @@ import {
   authEmailContent,
   type AuthEmailKind,
 } from './auth-email';
+import {
+  codeRef,
+  consoleDiagnostics,
+  passwordLinkDiagnostics,
+  type AuthDiagnosticsLog,
+} from './auth-diagnostics';
 import { REGISTRATION_PATH, verifyFirstRegistration } from './auth-registration';
 
 /** S4: sessions expire after 30 days without use, refreshed at most daily. */
@@ -51,6 +57,8 @@ export interface OutgoingAuthEmail {
   /** Wording from auth-email.ts; every message says what to do if it was not requested. */
   subject: string;
   text: string;
+  /** Non-secret fingerprint of the code, matching `ref` in the diagnostics log. */
+  ref: string;
 }
 
 /** Where auth emails go. The trial never sends real email. */
@@ -66,8 +74,14 @@ export function createDevelopmentMailer(outboxFile?: string): AuthMailer {
         appendFileSync(outboxFile, `${JSON.stringify(email)}\n`);
         return;
       }
+      // Development only. The code is printed on its own line in groups of four (the app
+      // ignores spaces), so it does not break across lines in a narrow terminal.
       console.warn(
-        `[auth mail, not sent] ${email.kind} for ${email.to}: ${email.url} (code: ${email.token})`,
+        [
+          `[auth mail, not sent] ${email.kind} for ${email.to} (ref ${email.ref})`,
+          `    code: ${email.token.replace(/(.{4})(?=.)/g, '$1 ')}`,
+          `    link: ${email.url}`,
+        ].join('\n'),
       );
     },
   };
@@ -88,10 +102,13 @@ export interface CreateAuthOptions {
   production: boolean;
   /** S3: limit for sign-in, sign-up and reset requests per IP address. */
   credentialRateLimit?: RateLimitRule;
+  /** Safe diagnostics for password links (stages and refs only); defaults to the terminal. */
+  diagnostics?: AuthDiagnosticsLog;
 }
 
 export function createAuth(options: CreateAuthOptions) {
   const credentialLimit = options.credentialRateLimit ?? { window: 60, max: 5 };
+  const log = options.diagnostics ?? consoleDiagnostics;
   // Filled in once the instance exists; used by callbacks that run per request.
   const late: { context?: Promise<AuthCallbackContext> } = {};
 
@@ -147,11 +164,13 @@ export function createAuth(options: CreateAuthOptions) {
             { field: 'createdAt', value: new Date(Date.now() - 60 * 60 * 1000), operator: 'gt' },
           ],
         });
+        const ref = codeRef(options.secret, token);
         if (recent > PASSWORD_LINKS_PER_ADDRESS_PER_HOUR) {
-          console.warn(`[auth mail, suppressed] ${kind}: per-address hourly limit reached`);
+          log('password-link.suppressed', { kind, user: user.id, reason: 'per-address-limit' });
           return;
         }
-        await options.mailer.send(email(kind, user.email, url, token));
+        log('password-link.issued', { kind, user: user.id, ref });
+        await options.mailer.send(email(kind, user.email, url, token, ref));
       },
       // F11/F12: the link was delivered to the inbox, so opening it proves control of
       // the address. Mark it verified (the first password set completes registration).
@@ -183,7 +202,9 @@ export function createAuth(options: CreateAuthOptions) {
       sendOnSignUp: false,
       autoSignInAfterVerification: false,
       sendVerificationEmail: async ({ user, url, token }) => {
-        await options.mailer.send(email('verify-email', user.email, url, token));
+        await options.mailer.send(
+          email('verify-email', user.email, url, token, codeRef(options.secret, token)),
+        );
       },
     },
     session: {
@@ -216,7 +237,7 @@ export function createAuth(options: CreateAuthOptions) {
         '/send-verification-email': credentialLimit,
       },
     },
-    plugins: [verifyFirstRegistration()],
+    plugins: [verifyFirstRegistration(), passwordLinkDiagnostics(options.secret, log)],
     hooks: {
       // S11: the fresh-session rule for sensitive library endpoints.
       before: createAuthMiddleware(async (ctx) => {
@@ -239,12 +260,19 @@ export function createAuth(options: CreateAuthOptions) {
   return auth;
 }
 
-function email(kind: AuthEmailKind, to: string, url: string, token: string): OutgoingAuthEmail {
+function email(
+  kind: AuthEmailKind,
+  to: string,
+  url: string,
+  token: string,
+  ref: string,
+): OutgoingAuthEmail {
   return {
     kind,
     to,
     url,
     token,
+    ref,
     ...authEmailContent(kind, url, PASSWORD_LINK_EXPIRES_IN_SECONDS / 60),
   };
 }

@@ -18,6 +18,10 @@ export interface AuthTestContext {
   auth: ReturnType<typeof createAuth>;
   sql: postgres.Sql;
   outbox: OutgoingAuthEmail[];
+  /** Everything the auth diagnostics logged (event name + fields). */
+  diagnostics: { event: string; fields: Record<string, unknown> }[];
+  /** The random secret this context's auth instance uses. */
+  secret: string;
   rebuild: () => Promise<void>;
   close: () => Promise<void>;
 }
@@ -29,6 +33,7 @@ export async function createAuthTestContext(
   const database = createDatabase(testDb.url, { max: 2 });
   const sql = postgres(testDb.url, { max: 1, onnotice: () => {} });
   const outbox: OutgoingAuthEmail[] = [];
+  const diagnostics: AuthTestContext['diagnostics'] = [];
   const secret = randomBytes(32).toString('base64');
 
   const make = async () => {
@@ -38,6 +43,7 @@ export async function createAuthTestContext(
       baseURL: 'http://localhost:4000',
       webOrigins: [WEB_ORIGIN],
       mailer: { send: (email) => void outbox.push(email) },
+      diagnostics: (event, fields) => void diagnostics.push({ event, fields }),
       production: false,
       credentialRateLimit: options.credentialRateLimit ?? { window: 60, max: 10_000 },
     });
@@ -54,7 +60,7 @@ export async function createAuthTestContext(
     return { auth, app };
   };
 
-  const context = { ...(await make()), sql, outbox } as AuthTestContext;
+  const context = { ...(await make()), sql, outbox, diagnostics, secret } as AuthTestContext;
   context.rebuild = async () => {
     await context.app.close();
     Object.assign(context, await make());

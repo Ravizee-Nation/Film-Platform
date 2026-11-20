@@ -67,10 +67,11 @@ describe('L9 configuration under test', () => {
     expect(ctx.auth.options.telemetry?.enabled).toBe(false);
   });
 
-  it('only the verify-first registration plugin: no server expo() plugin, no excluded plugins', () => {
+  it('only our two plugins (registration, diagnostics): no server expo() plugin, no excluded plugins', () => {
     const options: BetterAuthOptions = ctx.auth.options;
     expect((options.plugins ?? []).map((plugin) => plugin.id)).toEqual([
       'verify-first-registration',
+      'password-link-diagnostics',
     ]);
   });
 

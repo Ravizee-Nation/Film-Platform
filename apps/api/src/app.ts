@@ -18,6 +18,7 @@ import { authRoutes } from './routes/auth';
 import { meRoutes } from './routes/me';
 import { registerErrorHandling } from './errors';
 import { systemRoutes } from './routes/system';
+import { serializeRequest } from './logging';
 
 export interface DatabaseHandle {
   ping(): Promise<void>;
@@ -50,6 +51,7 @@ export async function buildApp({ env, database, auth, register }: BuildAppOption
     logger: {
       level: env.LOG_LEVEL,
       redact: ['req.headers.authorization', 'req.headers.cookie', 'res.headers["set-cookie"]'],
+      serializers: { req: serializeRequest },
     },
   }).withTypeProvider<ZodTypeProvider>();
 
