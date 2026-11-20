@@ -1,0 +1,7 @@
+# Confirmed false positives only. Each line matches one exact finding
+# (commit:file:rule:line), so the rule stays active everywhere else.
+#
+# d1015a8: a made-up, random-looking 24-character reset code used as a test fixture
+# in the mobile client test. Not a secret. The fixture was replaced with a low-entropy
+# synthetic code in the following commit; this commit cannot be rewritten.
+d1015a89174347ae7becb268787c9fe34d192f7e:apps/mobile/src/__tests__/auth-client.test.ts:generic-api-key:214

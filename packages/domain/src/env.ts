@@ -23,6 +23,13 @@ export const apiEnvSchema = z.object({
     .string()
     .regex(/^\d+\.\d+\.\d+$/)
     .default('0.1.0'),
+  // D7 proof of concept: Better Auth settings.
+  BETTER_AUTH_SECRET: z
+    .string()
+    .min(32, 'must be at least 32 characters; generate one with `openssl rand -base64 32`'),
+  AUTH_BASE_URL: z.url().default('http://localhost:4000'),
+  /** Non-production only: append outgoing auth emails to this file instead of printing them. */
+  AUTH_TEST_OUTBOX_FILE: z.string().optional(),
 });
 export type ApiEnv = z.infer<typeof apiEnvSchema>;
 
