@@ -16,6 +16,9 @@ jest.mock('expo-linking', () => ({
 import type * as AuthClientModule from '../auth-client';
 import type * as SecureStoreModule from 'expo-secure-store';
 
+/** A made-up code in the API log's grouped format: six groups of four, mixed case. */
+const SYNTHETIC_GROUPED_CODE = 'TeSt CoDe AAAA BBBB CCCC 0000';
+
 type FakeFetch = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
 // The client captures the global fetch when it is created, so install a delegating
@@ -196,9 +199,10 @@ describe('mobile auth client', () => {
   });
 
   it('reset codes: spaces from the grouped display are removed; letter case is kept', async () => {
-    expect(client.normalizeResetCode(' AbCd eF12 \n3456 ')).toBe('AbCdeF123456');
+    // Synthetic, deliberately low-entropy fixtures (not real codes).
+    expect(client.normalizeResetCode(' TeSt CoDe \n0000 ')).toBe('TeStCoDe0000');
     const seen = recordRequests(() => json({ status: true }));
-    await client.submitResetCode('AbCd EfGh 1234 5678 IjKl 90Mn', 'a-new-passphrase');
+    await client.submitResetCode(SYNTHETIC_GROUPED_CODE, 'a-new-passphrase');
     expect(new URL(seen[0]!.url).pathname).toBe('/api/auth/reset-password');
     expect(seen[0]!.headers.get('origin')).toBe(client.NATIVE_APP_ORIGIN);
   });
@@ -209,9 +213,9 @@ describe('mobile auth client', () => {
       bodies.push(String(init?.body ?? ''));
       return json({ status: true });
     };
-    await client.submitResetCode('AbCd EfGh 1234 5678 IjKl 90Mn', 'a-new-passphrase');
+    await client.submitResetCode(SYNTHETIC_GROUPED_CODE, 'a-new-passphrase');
     expect(JSON.parse(bodies[0]!)).toEqual({
-      token: 'AbCdEfGh12345678IjKl90Mn',
+      token: SYNTHETIC_GROUPED_CODE.replace(/ /g, ''),
       newPassword: 'a-new-passphrase',
     });
     expect(client.RESET_CODE_LENGTH).toBe(24);

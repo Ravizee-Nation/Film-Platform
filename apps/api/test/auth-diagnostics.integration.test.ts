@@ -146,10 +146,10 @@ describe('request log never records link codes', () => {
           ip: '1.2.3.4',
           socket: {},
         }) as { url: string };
-      expect(fake('/api/auth/reset-password/AbCdEfGh12345678IjKl90Mn?callbackURL=%2Fx').url).toBe(
+      expect(fake('/api/auth/reset-password/TestCodeAAAABBBBCCCC0000?callbackURL=%2Fx').url).toBe(
         '/api/auth/reset-password/[redacted]?callbackURL=%2Fx',
       );
-      expect(fake('/api/auth/verify-email?token=eyJhbGciOi.secret.part&callbackURL=/').url).toBe(
+      expect(fake('/api/auth/verify-email?token=test-only-token&callbackURL=/').url).toBe(
         '/api/auth/verify-email?token=[redacted]&callbackURL=/',
       );
       expect(fake('/v1/me').url).toBe('/v1/me');
